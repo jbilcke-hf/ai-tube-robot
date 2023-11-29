@@ -1,0 +1,41 @@
+import { adminApiKey } from "../config.mts"
+import { getChannels } from "./getChannels.mts"
+import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
+
+// at first we can call this manually, this way we can ensure it is
+export async function syncGlobalIndex({
+  apiKey
+}: {
+  apiKey: string
+}) {
+  if (apiKey !== adminApiKey) {
+    console.error("security alert: a user tried to sync the index without having the admin rights")
+    throw new Error("Sorry, but you are not an admin. This security incident has been flagged. Have a nice day!")
+  }
+  
+  // first we load our index in memory
+  // this might be expensive! but this is how we evaluate if we already processed a video or not
+
+  // grab all channels
+  not! we cannot do that, it would be too expensive!
+  it's better to do it bit by bit, on submit
+  
+  const allChannels = await getChannels()
+  console.log(`syncGlobalIndex: found ${allChannels} channels`)
+
+  for (const channel of allChannels) {
+    const channelRequests = await getVideoRequestsFromChannel({
+      channel,
+      // note: queuing will only work with public channels
+      renewCache: true,
+    })
+
+    const requestsEntries = Object.entries(channelRequests)
+
+    console.log(`syncGlobalIndex: processing channel "${channel.slug}" (${channel.id}): found ${requestsEntries.length} requests`)
+
+    for (const [videoId, videoRequest] of requestsEntries) {
+     console.log("processing request:", )
+    }
+  }
+}
