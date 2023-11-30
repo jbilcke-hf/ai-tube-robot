@@ -397,3 +397,16 @@ export type UpdateQueueResponse = {
   error?: string
   nbUpdated: number
 }
+
+export type TTSVoice =
+ | "Cloée" // consent given (friend)
+ | "Julian" // consent given (HF employee)
+
+export type StoryLine = {
+  text: string
+  audio: string // in base64
+}
+
+export type Story = {
+  lines: StoryLine[]
+}

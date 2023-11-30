@@ -24,3 +24,9 @@ export const adminApiKey = `${process.env.ADMIN_HUGGING_FACE_API_TOKEN || ""}`
 export const adminUsername = `${process.env.ADMIN_HUGGING_FACE_USERNAME || ""}`
 
 export const adminCredentials: Credentials = { accessToken: adminApiKey }
+
+export const aiStoryServerApiUrl = `${process.env.AI_STORY_SERVER_API_GRADIO_URL || ""}`
+export const apiStoryServerApiToken = `${process.env.AI_STORY_SERVER_API_SECRET_TOKEN || ""}`
+
+export const hfInferenceApiModel = `${process.env.HUGGING_FACE_INFERENCE_API_MODEL || ""}`
+export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOKEN || ""}`
