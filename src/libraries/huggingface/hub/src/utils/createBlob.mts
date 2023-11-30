@@ -21,7 +21,7 @@ export async function createBlob(url: URL, opts?: { fetch?: typeof fetch, reques
 	}
 
 	if (url.protocol === "file:") {
-		const { FileBlob } = await import("./FileBlob");
+		const { FileBlob } = await import("./FileBlob.mts");
 
 		return FileBlob.create(url);
 	}

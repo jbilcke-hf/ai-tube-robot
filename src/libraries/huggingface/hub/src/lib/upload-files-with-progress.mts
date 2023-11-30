@@ -48,7 +48,7 @@ export async function* uploadFilesWithProgress(params: {
 		parentCommit: params.parentCommit,
 		useWebWorkers: params.useWebWorkers,
 		abortSignal: params.abortSignal,
-		fetch: async (input, init) => {
+		fetch: async (input, init): Promise<Response> => {
 			if (!init) {
 				return fetch(input);
 			}

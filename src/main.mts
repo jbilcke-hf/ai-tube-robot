@@ -1,3 +1,4 @@
+import { processQueue } from "./core/processQueue.mts"
 
 export const main = async () => {
 

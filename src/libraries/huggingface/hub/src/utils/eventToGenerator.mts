@@ -55,7 +55,7 @@ export async function* eventToGenerator<YieldType, ReturnType>(
 			// }
 			return result.value;
 		}
-		yield result.value;
+		yield result.value as any;
 	}
 
 	// So TS doesn't complain
