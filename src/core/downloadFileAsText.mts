@@ -51,6 +51,7 @@ export async function downloadFileAsText({
     return text
   } catch (err) {
     if (neverThrow) {
+      console.error(`downloadFileAsText():`, err)
       return ""
     } else {
       throw err

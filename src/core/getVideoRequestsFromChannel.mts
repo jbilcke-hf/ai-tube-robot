@@ -101,6 +101,7 @@ export async function getVideoRequestsFromChannel({
     return Object.values(videos)
   } catch (err) {
     if (neverThrow) {
+      console.error(`getVideoRequestsFromChannel():`, err)
       return []
     } else {
       throw err

@@ -33,6 +33,7 @@ export async function deleteFileFromDataset({
     return true
   } catch (err) {
     if (neverThrow) {
+      console.error(`deleteVideoFromDataset():`, err)
       return false
     } else {
       throw err

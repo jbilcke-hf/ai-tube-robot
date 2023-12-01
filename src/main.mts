@@ -5,28 +5,41 @@ import { processQueue } from "./core/processQueue.mts"
 export const main = async () => {
   let delayInSeconds = 60 * 60
 
-  console.log("main(): checking lock..")
+  // for faster debugging, you can disable some steps here
+  let skipProcessingChannels = true
+  let skipProcessingQueue = false
+
+
+  // console.log("main(): checking lock..")
   if (lock.isLocked) {
     delayInSeconds = 30
   } else {
-    console.log("main(): locking, going to process tasks..")
+    console.log("\n---------------------------------------------------\n")
+
+    //  console.log("main(): locking, going to process tasks..")
     lock.isLocked = true
 
-    try {
-      let nbNewlyEnqueued = await processChannels()
-      console.log(`main(): added ${nbNewlyEnqueued} new items to queue`)
-    } catch (err) {
-      console.log(`main(): failed to process: ${err}`)
+    if (!skipProcessingChannels) {
+      try {
+        let nbNewlyEnqueued = await processChannels()
+        console.log(`main(): added ${nbNewlyEnqueued} new items to queue`)
+      } catch (err) {
+        console.log(`main(): failed to process channels: ${err}`)
+      }
+
+      console.log("\n---------------------------------------------------\n")
     }
 
-    try {
-      let nbProcessed = await processQueue()
-      console.log(`main(): processed ${nbProcessed} queued items`)
-    } catch (err) {
-      console.log(`main(): failed to process: ${err}`)
+    if (!skipProcessingQueue) {
+      try {
+        let nbProcessed = await processQueue()
+        console.log(`main(): processed ${nbProcessed} queued items`)
+      } catch (err) {
+        console.log(`main(): failed to process: ${err}`)
+      }
     }
-
-    console.log("main(): releasing lock")
+    // console.log("\n---------------------------------------------------\n")
+    // console.log("main(): releasing lock")
     lock.isLocked = false
   }
 

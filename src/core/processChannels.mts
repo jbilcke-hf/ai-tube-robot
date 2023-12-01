@@ -61,7 +61,7 @@ export async function processChannels(): Promise<number> {
     // this is the end goal, we want to be able to automatically generate videos
     // note that we don't keep the user token so we won't be able to upload the video to their dataset on their behalf,
     // but this could be done when they connect on the UI
-    console.log("TODO Julian: call Zephyr to generate a new video")
+    // console.log("TODO Julian: call Zephyr to generate a new video")
 
   }
 
