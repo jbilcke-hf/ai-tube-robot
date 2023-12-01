@@ -63,7 +63,7 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
         numberOfViews: 0, // we reset
         numberOfLikes: 0, // we reset
         updatedAt: new Date().toISOString(),
-        tags:videoRequest.tags,
+        tags: videoRequest.tags,
         channel,
       }
 

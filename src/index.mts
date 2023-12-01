@@ -7,8 +7,6 @@ import { main } from "./main.mts"
 import { UpdateQueueRequest, UpdateQueueResponse } from "./types.mts"
 import { updateQueueWithNewRequests } from "./core/updateQueueWithNewRequests.mts"
 
-main()
-
 const app = express()
 const port = 7860
 
@@ -64,4 +62,7 @@ app.post("/update-queue", async (req, res) => {
   }
 })
 
-app.listen(port, () => { console.log(`Open http://localhost:${port}`) })
+app.listen(port, () => {
+  console.log(`Open http://localhost:${port}`)
+  main()
+})

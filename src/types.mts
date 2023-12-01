@@ -380,6 +380,7 @@ export type ParsedMetadataAndContent = {
 export type ParsedDatasetPrompt = {
   title: string
   description: string
+  tags: string[]
   prompt: string
 }
 
