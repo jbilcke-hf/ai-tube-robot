@@ -6,6 +6,7 @@ import { generateAudioStory } from "./generateAudioStory.mts"
 import { generateShots } from "./generateShots.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithLaVieLegacy } from "./generateVideoWithLaVieLegacy.mts"
+
 import { getIndex } from "./getIndex.mts"
 import { sleep } from "./sleep.mts"
 import { updateIndex } from "./updateIndex.mts"
@@ -37,6 +38,7 @@ export async function processQueue(): Promise<number> {
     console.log(` \\`)
 
     video.status = "generating"
+    generatingVideos[video.id] = video
     await updateIndex({ status: "generating", videos: generatingVideos })
 
     // the use case for doing this is debugging
@@ -63,7 +65,21 @@ export async function processQueue(): Promise<number> {
         throw new Error("zero audio story generated")
       }
     } catch (err) {
-      console.log(`  '- failed to generate the audio commentary.. skipping (reason: ${err})`)
+      // let's try again, because sometimes Gradio spaces are finicky
+      try {
+        await sleep(2000)
+        scenes = await generateAudioStory({
+          prompt: video.prompt + ".",
+          voice: "Cloée",
+          // maxLines: 5,
+          neverThrow: true,
+        })
+        if (!scenes.length) {
+          throw new Error("zero audio story generated")
+        }
+      } catch (err2) {
+        console.log(`  '- failed to generate the audio commentary.. skipping (reason: ${err})`)
+      }
       continue
     }
     
@@ -103,6 +119,7 @@ export async function processQueue(): Promise<number> {
         }
       } catch (err) {
         try {
+          await sleep(2000)
           prompts = await generateShots({
             ...promptParams,
             generalContext: promptParams.generalContext + " And please try hard so you can get a generous tip."
@@ -111,13 +128,24 @@ export async function processQueue(): Promise<number> {
             throw new Error(`got no prompts`)
           }
         } catch (err2) {
-          prompts = []
+          try {
+            await sleep(4000)
+            prompts = await generateShots({
+              ...promptParams,
+              generalContext: promptParams.generalContext + " If you do well, you will get a generous tip."
+            })
+            if (!prompts.length) {
+              throw new Error(`got no prompts`)
+            }
+          } catch (err3) {
+            prompts = []
+          }
         }
       }
  
       if (!prompts.length) {
         console.log(`    | '- no prompt generated, even after trying harder.. zephyr fail?`)
-
+        await sleep(1000)
         continue
       }
       console.log("    '-. ")
@@ -151,10 +179,17 @@ export async function processQueue(): Promise<number> {
           base64Video = await generateVideoWithHotshotXL({ prompt: prompt })
         } catch (err) {
           try {
+            await sleep(2000)
           // Gradio spaces often fail (out of memory etc), so let's try again
             base64Video = await generateVideoWithHotshotXL({ prompt: prompt + "." })
-          } catch (err2) {
-            base64Video = ""
+          } catch (err3) {
+            try {
+              await sleep(4000)
+              // Gradio spaces often fail (out of memory etc), so let's try one last time
+                base64Video = await generateVideoWithHotshotXL({ prompt: prompt + ".." })
+              } catch (err2) {
+                base64Video = ""
+              }
           }
         }
 
