@@ -80,9 +80,12 @@ export async function processQueue(): Promise<number> {
         console.log(`        +-- generated shot! got a nice video "${base64Video.slice(0, 30)}..."`)
       }
 
+      // TODO: concatenate the videos, and put the audio over it
 
       previousScenes.push(currentScene)
     }
+
+    // concatenate all the videos together
 
     // finally, we assemble the mp4 (this part will be tricky)
 

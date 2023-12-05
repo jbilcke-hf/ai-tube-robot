@@ -1,6 +1,7 @@
 export function cleanArrayStringFromLLM(input: string): string {
   let str = (
     `${input || ""}`
+    .trim()
     // a summary of all the weird hallucinations I saw it make..
     .replaceAll(`"\n`, `",\n`) // fix missing commas at the end of a line
 

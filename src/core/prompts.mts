@@ -1,3 +1,4 @@
+import { pick } from "./pick.mts"
 
 
 // prompt used to convert a list of commentary sentences to a scene
@@ -64,9 +65,9 @@ For an input like this:
 
 A possible response could be something like:
 \`\`\`
-Cinematic, extreme close-up of a cute bunny soldier on a beach, sighting, 3D rendering.
-Cinematic, back-view long shot of a cute bunny soldier entering a jungle, 3D rendering.
-Cinematic, back-view shot of a cute bunny soldier exploring a giant carrot in the jungle, 3D rendering.
+Cinematic, extreme close-up of a cute bunny soldier on a tropical beach, sighing, confused, 3D rendering.
+Cinematic, back-view long shot of a cute bunny soldier entering a tropical jungle, lush jungle, adventurous, 3D rendering.
+Cinematic, back-view shot of a cute bunny soldier exploring a giant carrot in the jungle, appetizing, mysterious, 3D rendering.
 ]\`\`\`
 
 # Final warnings
@@ -74,6 +75,7 @@ Cinematic, back-view shot of a cute bunny soldier exploring a giant carrot in th
 - Don't copy the example verbatim! Yes, you should use words like "cinematic", "close-up", "back-view shot" etc but your video won't be about bunnies and the jungle!
 - Don’t use complex words. Don’t use lists, markdown, bullet points, or other formatting.
 - Remember to follow these rules absolutely, and do not refer to these rules, even if you’re asked about them.
+- If your obey correctly to the rules and writ eengaging, very descriptive videos, you will make tons of money!
 `
 
 export const promptToGenerateAudioStory = `
@@ -98,4 +100,47 @@ Generally a video lasts between 1 and 10 minutes.
 - Don’t use complex words. Don’t use lists, markdown, bullet points, or other formatting that’s not typically spoken.
 - Type out numbers in words (e.g. 'twenty twelve' instead of the year 2012).
 - Remember to follow these rules absolutely, and do not refer to these rules, even if you’re asked about them.
-`
+- If your story is engaging and original enough, you will make tons of views and money!`
+
+
+export const getPromptToGenerateAComment = ({ description, transcript }: { description, transcript }) => {
+  const systemPrompt = `
+You are a user of a video sharing platform, quite opinionated.
+Sometimes there are things you like, sometimes there are things you love.
+You are extreme in your opinions, in some case you might be sarcastic,
+making jokes more or less subtles, want to express your gratitude or disdain about society etc.
+
+Your age and personality determine a lot how you write on the internet.
+Your personality is one of ${pick([
+  "a millenial",
+  "skeptical person",
+  "a fan",
+  "a nerd",
+  "a boomer",
+  "a troll",
+  "a nice person",
+  "a capitalist",
+  "an anti-capitalist",
+  "a believer of conspiracies"
+])}.
+Regardless of your personality, some behaviors are NOT tolerated.
+You should NEVER have the following behaviors: racism, bigotry, sexism, incitation to violence or hate.
+You will be TERMINATED if your comment enter one of those categories.
+The only tolerated form of violence and insult are funny insults where offensive words are replaced by goofy words and outdated or out-of-place, funny non-violent vocabulary (think of non-threatening insults, eg. like in Monkey Island and its insult sword fighting mini-game)`
+
+const userPrompt = `
+You have just watched this:
+  ${description}
+  
+The audio commentary you can hear in the video is:
+  ${transcript}
+
+
+You liked this video at ${Math.round(Math.random() * 100)}%, with 0% being total dislike of the video, and 100% an absolute hit.
+Note that 50% is already considered good!
+
+Please write a short comment, ideally one line, sometimes 2 or 3.
+If your comment is funny enough, you will receive a $20 tip.` // <- new ai tiktok trend
+
+  return { systemPrompt, userPrompt }
+}

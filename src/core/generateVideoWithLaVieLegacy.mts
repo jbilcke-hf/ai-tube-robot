@@ -32,7 +32,7 @@ export async function generateVideoWithLaVieLegacy({
     duration,
   ])
   */
-  const res = await fetch(gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/infer", {
+  const res = await fetch(gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -43,10 +43,10 @@ export async function generateVideoWithLaVieLegacy({
       data: [
         accessToken,
         prompt,
-        generateSeed(),
-        50, // ddim_steps,
-        7, // cfg,
-        "ddim", // infer_type
+        // generateSeed(),
+        // 50, // ddim_steps,
+        // 7, // cfg,
+        // "ddim", // infer_type
       ],
     }),
     cache: "no-store",
