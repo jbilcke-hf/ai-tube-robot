@@ -30,3 +30,27 @@ export const apiStoryServerApiToken = `${process.env.AI_STORY_SERVER_API_SECRET_
 
 export const hfInferenceApiModel = `${process.env.HUGGING_FACE_INFERENCE_API_MODEL || ""}`
 export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOKEN || ""}`
+
+// ------------------------------------------------------------------------------------
+
+// those are only used for debugging during development
+// by default (in production) they should be set to false,
+// but you can set them to true on your own machine
+
+// set to true to not mark the video as "generating"
+// this will make it easier for you to generate the same video queue again and again during development
+export const keepVideoInQueue = false
+
+// set to true to not delete the temporary files
+// this will make it easier for your to inspect the content of the individual .wav and .mp4 files
+export const keepTemporaryFiles = false
+
+// if set to true, a video that has already been published will be re-generated
+export const enableRepublishing = true
+
+export const skipProcessingChannels = true
+
+export const skipProcessingQueue = false
+
+// ------------------------------------------------------------------------------------
+

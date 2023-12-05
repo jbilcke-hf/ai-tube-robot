@@ -1,5 +1,4 @@
-import { generateSeed } from "./generateSeed.mts"
-
+import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 
 const gradioApi = `${process.env.AI_TUBE_MODEL_LAVIE_GRADIO_URL || ""}`
 const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
@@ -64,5 +63,11 @@ export async function generateVideoWithLaVieLegacy({
   }
   // console.log("data:", data.slice(0, 50))
 
-  return data[0]
+  const base64Content = (data?.[0] || "") as string
+
+  if (!base64Content) {
+    throw new Error(`invalid response (no content)`)
+  }
+
+  return addBase64HeaderToMp4(base64Content)
 }

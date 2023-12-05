@@ -1,3 +1,4 @@
+import { skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./core/lock.mts"
 import { processChannels } from "./core/processChannels.mts"
 import { processQueue } from "./core/processQueue.mts"
@@ -6,10 +7,7 @@ export const main = async () => {
   let delayInSeconds = 60 * 60
 
   // for faster debugging, you can disable some steps here
-  let skipProcessingChannels = true
-  let skipProcessingQueue = false
-
-
+ 
   // console.log("main(): checking lock..")
   if (lock.isLocked) {
     delayInSeconds = 30

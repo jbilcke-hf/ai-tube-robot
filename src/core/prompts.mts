@@ -88,6 +88,7 @@ The video may be about various topics (fun, jokes, language learning, education,
 For instance if it's a story, you need to write like a storyteller, with a mix of 3rd person commentary and character dialogue.
 Or, if it's a documentary or another kind of video type, you can keep your own 1st person voice to describe it naturally.
 I will let you figure it out, choose the appropriate mode!
+Usually for things like personal comment, review etc. you your speak at the first person (I did this, did that etc).
 
 # Output format
 The user may gives you indicated about the duration of the video.

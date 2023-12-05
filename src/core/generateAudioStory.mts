@@ -1,4 +1,5 @@
 import { StoryLine, TTSVoice } from "../types.mts"
+import { addBase64HeaderToWav } from "./addBase64HeaderToWav.mts"
 import { promptToGenerateAudioStory } from "./prompts.mts"
 
 export const aiStoryServerApiUrl = `${process.env.AI_STORY_SERVER_API_GRADIO_URL || ""}`
@@ -58,7 +59,7 @@ export async function generateAudioStory({
 
     return stories.map(line => ({
       text: line.text.replaceAll(" .", ".").replaceAll(" ?", "?").replaceAll(" !", "!").trim(),
-      audio: line.audio
+      audio: addBase64HeaderToWav(line.audio)
     }))
   } catch (err) {
     if (neverThrow) {

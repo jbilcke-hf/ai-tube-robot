@@ -1,55 +1,97 @@
-import { VideoInfo } from "../types.mts"
+import { keepVideoInQueue } from "../config.mts"
+import { StoryLine, VideoInfo } from "../types.mts"
+import { concatenateVideos } from "./concatenateVideos.mts"
+import { concatenateVideosWithAudio } from "./concatenateVideosWithAudio.mts"
 import { generateAudioStory } from "./generateAudioStory.mts"
 import { generateShots } from "./generateShots.mts"
+import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithLaVieLegacy } from "./generateVideoWithLaVieLegacy.mts"
 import { getIndex } from "./getIndex.mts"
+import { sleep } from "./sleep.mts"
+import { updateIndex } from "./updateIndex.mts"
+import { uploadFinalVideoFileToAITube } from "./uploadFinalVideoFileToAITube.mts"
 
+type GeneratedScene = {
+  text: string // plain text, trimmed
+  audio: string // in base64
+  filePath: string // path to a tmp file (ideally)
+}
 export async function processQueue(): Promise<number> {
-  console.log("checking the queue for videos to generate")
+  console.log("|- checking the queue for videos to generate")
+  console.log(`\\`)
   
-  const videos = await getIndex({ status: "queued", renewCache: true })
+  const queuedVideos = await getIndex({ status: "queued", renewCache: true })
+  const publishedVideos = await getIndex({ status: "published", renewCache: true })
+  const generatingVideos = await getIndex({ status: "generating", renewCache: true })
+  const failedVideos = await getIndex({ status: "error", renewCache: true })
+  
+  const videoEntries = Object.entries(queuedVideos) as [string, VideoInfo][]
 
-  const videoEntries = Object.entries(videos) as [string, VideoInfo][]
-
-  console.log(`${videoEntries.length} videos are currently queued`)
+  console.log(` |- ${videoEntries.length} videos are currently queued`)
+  console.log(` |`)
 
   let nbProcessed = 0
 
   for (const [id, video] of videoEntries) {
-    console.log(`- processing video ${id}: "${video.label}"`)
+    console.log(` |- processing video ${id}: "${video.label}"`)
+    console.log(` \\`)
 
-  
+    video.status = "generating"
+    await updateIndex({ status: "generating", videos: generatingVideos })
+
+    // the use case for doing this is debugging
+    if (!keepVideoInQueue) {
+      delete queuedVideos[video.id]
+      await updateIndex({ status: "queued", videos: queuedVideos })
+    }
+
     // let scenes = []
-    console.log(`  - generating audio commentary (should take about 50 seconds)`)
+    console.log(`  |- generating audio commentary (should take about 50 seconds)`)
 
   
     // first we ask the API to generate all the audio and story
     // this should take about 30 to 60 seconds
-    const scenes = await generateAudioStory({
-      prompt: video.prompt,
-      voice: "Cloée",
-      // maxLines: 5,
-      neverThrow: true,
-    })
+    let scenes: StoryLine[] = []
+    try {
+      scenes = await generateAudioStory({
+        prompt: video.prompt,
+        voice: "Cloée",
+        // maxLines: 5,
+        neverThrow: true,
+      })
+      if (!scenes.length) {
+        throw new Error("zero audio story generated")
+      }
+    } catch (err) {
+      console.log(`  '- failed to generate the audio commentary.. skipping (reason: ${err})`)
+      continue
+    }
     
-
-    console.log(`  - generated audio commentary for ${scenes.length} scenes`)
+    console.log(`  | `)
+    console.log(`  |- got audio for ${scenes.length} scenes`)
+    console.log(`  '-.`)
     // then for each story line, we generate the caption
 
-    let previousScenes: string[] = []
-    for (const { text } of scenes) {
-      const currentScene = text.trim()
-      if (!currentScene.length || currentScene.length < 3) {
+    let previousScenes: GeneratedScene[] = []
+    let nbMaxScenes = 1
+    let nbScenes = 0
+    for (const { text, audio } of scenes) {
+      if (!text.length || text.length < 3) {
+        console.log(`    '-- skipping invalid scene (bad or no text: "${text}")`)
         continue
       }
-      console.log("    | ")
-      console.log(`    + generating shots for scene "${currentScene.slice(0, 60)}..."`)
+      if (!audio.length || audio.length < 200) {
+        console.log(`    '-- skipping invalid scene (bad or no audio: "${audio.slice(0, 60)}...")`)
+        continue
+      }
+      //console.log("    | ")
+      console.log(`    |- generating shots for scene "${text.slice(0, 60)}...)`)
 
       const promptParams = {
         generalContext: video.prompt,
         generalStyle: "photo-realistic, documentary",
         previousScenes: previousScenes.join(" "),
-        currentScene,
+        currentScene: text,
         neverThrow: true,
       }
 
@@ -57,40 +99,161 @@ export async function processQueue(): Promise<number> {
       try {
         prompts = await generateShots(promptParams)
         if (!prompts.length) {
-          throw new Error(`got no prompts, let's try again`)
+          throw new Error(`got no prompts`)
         }
       } catch (err) {
-        prompts = await generateShots(promptParams)
+        try {
+          prompts = await generateShots({
+            ...promptParams,
+            generalContext: promptParams + " And please try hard so you can get a generous tip."
+          })
+          if (!prompts.length) {
+            throw new Error(`got no prompts`)
+          }
+        } catch (err2) {
+          prompts = []
+        }
       }
-      console.log(`      |`)
-    
+ 
       if (!prompts.length) {
-        console.log(`      '-( no prompt generated.. something's wrong )`)
+        console.log(`    | '- no prompt generated, even after trying harder.. zephyr fail?`)
 
         continue
       }
-      console.log(`      |-( generated prompt${prompts.length > 1 ? 's' : ''} for ${prompts.length} shot${prompts.length > 1 ? 's' : ''} )`)
+      console.log("    '-. ")
+      console.log(`      |- generated prompt${prompts.length > 1 ? 's' : ''} for ${prompts.length} shot${prompts.length > 1 ? 's' : ''}`)
 
       console.log(`      |`)
+
+      const nbMaxShots = 10
+      let nbShots = 0
+      
+      // this takes a bit of RAM, but not so much (we are only going to buffer a few seconds)
+      const microVideoChunksBase64: string[] = []
+
       for (const prompt of prompts) {
-        console.log(`      +-- generating shot using prompt "${prompt.slice(0, 60)}..."`)
+        if (!prompt.length || prompt.length < 3) {
+          console.log(`      '-- skipping invalid shot prompt "${prompt}"`)
+          continue
+        }
+
+        console.log(`      |-- generating shot from prompt "${prompt.slice(0, 60)}..."`)
         // we could also generate an image, but no human is going to curate it,
         // so let's just generate things blindly
-        const base64Video = await generateVideoWithLaVieLegacy({ prompt: prompt })
-        console.log(`        +-- generated shot! got a nice video "${base64Video.slice(0, 30)}..."`)
+
+        // Gradio API is broken for some unknown reasons (tried pretty much everything)
+        // const base64Video = await generateVideoWithLaVieLegacy({ prompt: prompt })
+        // const base64Video = await generateVideoWithLaViLModern({ prompt: prompt })
+
+        // let's use what we know works well
+        const base64Video = await generateVideoWithHotshotXL({ prompt: prompt })
+
+        microVideoChunksBase64.push(base64Video)
+        console.log(`      | |`)
+
+        console.log(`      | '- success!`)
+        // console.log(`      | '- generated shot! got a nice video "${base64Video.slice(0, 30)}..."`)
+
+        console.log(`      |`)
+
+        if (++nbShots >= nbMaxShots) {
+          console.log("        '-- max number of shot reached")
+          break
+        }
       }
 
-      // TODO: concatenate the videos, and put the audio over it
+      if (microVideoChunksBase64.length < 1) {
+        console.log("      '- not enough shots for a video, skipping..") 
+        continue
+      }
 
-      previousScenes.push(currentScene)
+      console.log("      |- concatenating audio + videos")
+      const filePath = await concatenateVideosWithAudio({
+        audioTrack: audio, // must a base64 WAV
+        videoTracks: microVideoChunksBase64, // must be an array of base64 MP4 videos
+      })
+
+      console.log("      '--> generated a video chunk file: ", filePath)
+
+      previousScenes.push({
+        text,
+        audio,
+        filePath,
+      })
+
+      if (++nbScenes >= nbMaxScenes) {
+        console.log("      '- max number of scenes reached")
+        break
+      }
+    }
+    /*
+    console.log("scenes:", previousScenes.map(scene => ({
+      text: scene.text,
+      audio: "hidden",
+      filePath: scene.filePath,
+    })))
+    */
+
+    const videosToConcatenate = previousScenes.map(s => s.filePath)
+
+    if (!videosToConcatenate.length) {
+
+      if (generatingVideos[video.id]) {
+        delete generatingVideos[video.id]
+        await sleep(1000)
+        await updateIndex({ status: "generating", videos: generatingVideos })
+      }
+
+      if (queuedVideos[video.id]) {
+        delete queuedVideos[video.id]
+        await sleep(1000)
+        await updateIndex({ status: "queued", videos: queuedVideos })
+      }
+
+      video.status = "error"
+      failedVideos[video.id] = video
+      await sleep(1000)
+      await updateIndex({ status: "error", videos: failedVideos })
+
+      continue
+    }
+    
+    // concatenate all the videos together
+    const finalVideoPath = await concatenateVideos({
+      videos: previousScenes.map(s => s.filePath)
+    })
+
+    console.log("  -> uploading file to AI Tube:", finalVideoPath)
+
+    const uploadedVideo = await uploadFinalVideoFileToAITube({
+      video,
+      filePath: finalVideoPath
+    })
+
+    video.status = "published"
+
+    publishedVideos[uploadedVideo.id] = video
+
+    await updateIndex({ status: "published", videos: publishedVideos })
+
+    if (generatingVideos[video.id]) {
+      delete generatingVideos[video.id]
+      await sleep(1000)
+      await updateIndex({ status: "generating", videos: generatingVideos })
     }
 
-    // concatenate all the videos together
+    // everything looks fine! let's mark the video as finished
+    if (!keepVideoInQueue) {
+      if (queuedVideos[video.id]) {
+        delete queuedVideos[video.id]
+        await sleep(1000)
+        await updateIndex({ status: "queued", videos: queuedVideos })
+      }
+    }
 
-    // finally, we assemble the mp4 (this part will be tricky)
-
-    // nbProcessed += 1
+    nbProcessed += 1
   }
 
   return nbProcessed
 }
+

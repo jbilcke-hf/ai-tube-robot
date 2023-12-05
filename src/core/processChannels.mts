@@ -1,3 +1,4 @@
+import { enableRepublishing } from "../config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./getChannels.mts"
 import { getIndex } from "./getIndex.mts"
@@ -10,7 +11,9 @@ import { updateQueueWithNewRequests } from "./updateQueueWithNewRequests.mts"
 export async function processChannels(): Promise<number> {
   console.log("processChannels(): loading queue..")
   
-  const videos = await getIndex({ status: "queued", renewCache: true })
+  const queuedVideos = await getIndex({ status: "queued", renewCache: true })
+  const publishedVideos = await getIndex({ status: "published", renewCache: true })
+  const generatingVideos = await getIndex({ status: "generating", renewCache: true })
 
   await sleep(2000)
 
@@ -35,7 +38,20 @@ export async function processChannels(): Promise<number> {
     })
   
     for (const videoRequest of videosRequests) {
-      if (!videos[videoRequest.id]) {
+
+      if (!enableRepublishing) {
+        if (publishedVideos[videoRequest.id]) {
+          // video is already published! skipping..
+          continue
+        }
+      }
+
+      if (generatingVideos[videoRequest.id]) {
+        // video is already being generated! skipping..
+        continue
+      }
+
+      if (!queuedVideos[videoRequest.id]) {
         console.log(`adding video request ${videoRequest.id} to the queue`)
 
         const newVideo: VideoInfo = {
@@ -52,7 +68,7 @@ export async function processChannels(): Promise<number> {
           tags: videoRequest.tags,
           channel,
         }
-        videos[videoRequest.id] = newVideo
+        queuedVideos[videoRequest.id] = newVideo
 
         nbNewlyEnqueued += 1
       }
@@ -70,7 +86,8 @@ export async function processChannels(): Promise<number> {
     // finally we update the index
     // now obviously this is only safe to do if there is
     // only one sync function and process doing the index commits at a time!
-    await updateIndex({ status: "queued", videos })
+    await updateIndex({ status: "queued", videos: queuedVideos })
+    // await updateIndex({ status: "queued", videos: queuedVideos })
   }
 
   return nbNewlyEnqueued

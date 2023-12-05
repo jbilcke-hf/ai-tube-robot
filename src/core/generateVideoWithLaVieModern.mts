@@ -2,6 +2,7 @@
 import { client } from "@gradio/client"
 
 import { generateSeed } from "./generateSeed.mts"
+import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts";
 
 const gradioApi = `${process.env.AI_TUBE_MODEL_LAVIE_GRADIO_URL || ""}`
 const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
@@ -39,13 +40,18 @@ export async function generateVideoWithLaVieModern({
   const res = await app.predict("/infer", [
     accessToken,
     prompt,
-    generateSeed(),
-    50, // ddim_steps,
-    7, // cfg,
-    "ddim", // infer_type
+    // generateSeed(),
+    // 50, // ddim_steps,
+    // 7, // cfg,
+    // "ddim", // infer_type
   ])
 
-  console.log("res:", res)
+  const base64Content = res as string
+  console.log("base64Content:", base64Content)
 
-  return ""
+  if (!base64Content) {
+    throw new Error(`invalid response (no content)`)
+  }
+
+  return addBase64HeaderToMp4(base64Content)
 }
