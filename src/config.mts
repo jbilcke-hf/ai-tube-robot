@@ -39,7 +39,7 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 
 // if set to true, a video that has already been published will be re-generated
 // this is probably the only variable you will want to switch to true during debugging
-export const enableRepublishing = true
+export const enableRepublishing = false
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development

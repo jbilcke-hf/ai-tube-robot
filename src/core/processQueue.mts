@@ -275,14 +275,15 @@ export async function processQueue(): Promise<number> {
 
     console.log("  -> uploading file to AI Tube:", finalVideoPath)
 
-    const uploadedVideo = await uploadFinalVideoFileToAITube({
+    const uploadedVideoUrl = await uploadFinalVideoFileToAITube({
       video,
       filePath: finalVideoPath
     })
 
+    video.assetUrl = uploadedVideoUrl
     video.status = "published"
 
-    publishedVideos[uploadedVideo.id] = video
+    publishedVideos[video.id] = video
 
     await updateIndex({ status: "published", videos: publishedVideos })
 

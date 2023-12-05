@@ -12,7 +12,7 @@ export async function uploadFinalVideoFileToAITube({
 }: {
   video: VideoInfo
   filePath: string
-}): Promise<VideoInfo> {
+}): Promise<string> {
   if (!filePath) {
     throw new Error(`the filePath is required`)
   }
@@ -36,8 +36,5 @@ export async function uploadFinalVideoFileToAITube({
     commitTitle: "Add new video prompt",
   })
 
-  return {
-    ...video,
-    assetUrl: `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/raw/main/videos/${video.id}.mp4`
-  }
+  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/raw/main/videos/${video.id}.mp4`
 }
