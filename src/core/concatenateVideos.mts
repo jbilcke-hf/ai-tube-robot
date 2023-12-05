@@ -28,10 +28,12 @@ export async function concatenateVideos({ output, videos }: {
     throw new Error("failed to generate a valid temporary file path")
   }
 
+  /*
   console.log("going to concatenate videos (without touching to the audio)", {
     videos,
     filePath
   })
+  */
 
   const ffmpegCommand = ffmpeg()
  

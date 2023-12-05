@@ -73,7 +73,7 @@ export async function processQueue(): Promise<number> {
     // then for each story line, we generate the caption
 
     let previousScenes: GeneratedScene[] = []
-    let nbMaxScenes = 1
+    let nbMaxScenes = 5
     let nbScenes = 0
     for (const { text, audio } of scenes) {
       if (!text.length || text.length < 3) {
@@ -105,7 +105,7 @@ export async function processQueue(): Promise<number> {
         try {
           prompts = await generateShots({
             ...promptParams,
-            generalContext: promptParams + " And please try hard so you can get a generous tip."
+            generalContext: promptParams.generalContext + " And please try hard so you can get a generous tip."
           })
           if (!prompts.length) {
             throw new Error(`got no prompts`)
@@ -146,7 +146,22 @@ export async function processQueue(): Promise<number> {
         // const base64Video = await generateVideoWithLaViLModern({ prompt: prompt })
 
         // let's use what we know works well
-        const base64Video = await generateVideoWithHotshotXL({ prompt: prompt })
+        let base64Video = ""
+        try {
+          base64Video = await generateVideoWithHotshotXL({ prompt: prompt })
+        } catch (err) {
+          try {
+          // Gradio spaces often fail (out of memory etc), so let's try again
+            base64Video = await generateVideoWithHotshotXL({ prompt: prompt + "." })
+          } catch (err2) {
+            base64Video = ""
+          }
+        }
+
+        if (!base64Video.length || base64Video.length < 200) {
+          console.log(`      | '- failed to generate a video snippet, skipping..`)
+          continue
+        }
 
         microVideoChunksBase64.push(base64Video)
         console.log(`      | |`)
