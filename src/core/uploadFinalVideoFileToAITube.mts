@@ -36,5 +36,5 @@ export async function uploadFinalVideoFileToAITube({
     commitTitle: "Add new video prompt",
   })
 
-  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/raw/main/videos/${video.id}.mp4`
+  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp4`
 }
