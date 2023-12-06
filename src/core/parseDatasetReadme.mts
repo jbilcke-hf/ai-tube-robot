@@ -53,7 +53,7 @@ function parseMarkdown(markdown: string): {
   tags: string
 } {
  // Improved regular expression to find markdown sections and accommodate multi-line content.
- const sectionRegex = /^#+\s+(?<key>.+?)\n\n(?<content>[^#]+)/gm;
+ const sectionRegex = /^#+\s+(?<key>.+?)\n\n?(?<content>[^#]+)/gm;
 
  const sections: { [key: string]: string } = {};
 

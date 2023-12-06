@@ -94,7 +94,15 @@ export async function getChannels(options: {
       prompt = parsedDatasetReadme.prompt
       label = parsedDatasetReadme.pretty_name
       description = parsedDatasetReadme.description
-      thumbnail = parsedDatasetReadme.thumbnail
+      thumbnail = parsedDatasetReadme.thumbnail || "thumbnail.jpg"
+
+      thumbnail =
+      thumbnail.startsWith("http")
+        ? thumbnail
+        : (thumbnail.endsWith(".jpg") || thumbnail.endsWith(".jpeg"))
+        ? `https://huggingface.co/datasets/${name}/resolve/main/${thumbnail}`
+        : ``
+      
       voice = parsedDatasetReadme.voice
 
       tags = parsedDatasetReadme.tags
