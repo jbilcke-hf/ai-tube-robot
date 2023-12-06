@@ -76,7 +76,7 @@ ${prompt}
     label: title,
     description,
     prompt,
-    thumbnailUrl: "",
+    thumbnailUrl: channel.thumbnail,
     updatedAt: new Date().toISOString(),
     tags,
     channel,
@@ -88,7 +88,7 @@ ${prompt}
     label: title,
     description,
     prompt,
-    thumbnailUrl: "", // will be generated in async
+    thumbnailUrl: channel.thumbnail, // will be generated in async
     assetUrl: "", // will be generated in async
     numberOfViews: 0,
     numberOfLikes: 0,

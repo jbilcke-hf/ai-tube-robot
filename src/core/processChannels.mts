@@ -60,7 +60,7 @@ export async function processChannels(): Promise<number> {
           label: videoRequest.label,
           description: videoRequest.description,
           prompt: videoRequest.prompt,
-          thumbnailUrl: "", // will be generated in async
+          thumbnailUrl: channel.thumbnail, // will be generated in async
           assetUrl: "", // will be generated in async
           numberOfViews: 0,
           numberOfLikes: 0,

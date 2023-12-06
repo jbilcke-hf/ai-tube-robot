@@ -63,24 +63,13 @@ ${prompt}
     commitTitle: "Add new video prompt",
   })
 
-  const newVideoRequest: VideoRequest = {
-    id: videoId,
-    label: title,
-    description: "",
-    prompt: "",
-    thumbnailUrl: "",
-    updatedAt: new Date().toISOString(),
-    tags: [...channel.tags],
-    channel,
-  }
-
   const newVideo: VideoInfo = {
     id: videoId,
     status: "submitted",
     label: title,
     description: "",
     prompt: "",
-    thumbnailUrl: "", // will be generated in async
+    thumbnailUrl: channel.thumbnail, // will be generated in async
     assetUrl: "", // will be generated in async
     numberOfViews: 0,
     numberOfLikes: 0,

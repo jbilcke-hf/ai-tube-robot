@@ -4,7 +4,7 @@ import { processChannels } from "./core/processChannels.mts"
 import { processQueue } from "./core/processQueue.mts"
 
 export const main = async () => {
-  let delayInSeconds = 60 * 60
+  let delayInSeconds = 60 * 60 // let's check every HOUR
 
   // for faster debugging, you can disable some steps here
  
