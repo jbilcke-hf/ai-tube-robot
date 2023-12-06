@@ -4,7 +4,10 @@ import { processChannels } from "./core/processChannels.mts"
 import { processQueue } from "./core/processQueue.mts"
 
 export const main = async () => {
-  let delayInSeconds = 60 * 60 // let's check every HOUR
+  let delayInSeconds = 5 * 60 // let's check every 5 minutes
+
+  // note: this is not an interval, because we are always waiting for current job
+  // execution before starting something new
 
   // for faster debugging, you can disable some steps here
  
