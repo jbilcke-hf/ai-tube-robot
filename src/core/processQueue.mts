@@ -89,7 +89,7 @@ export async function processQueue(): Promise<number> {
     // then for each story line, we generate the caption
 
     let previousScenes: GeneratedScene[] = []
-    let nbMaxScenes = 30
+    let nbMaxScenes = 40
     let nbScenes = 0
     for (const { text, audio } of scenes) {
       if (!text.length || text.length < 3) {
@@ -153,7 +153,7 @@ export async function processQueue(): Promise<number> {
 
       console.log(`      |`)
 
-      const nbMaxShots = 30
+      const nbMaxShots = 40
       let nbShots = 0
       
       // this takes a bit of RAM, but not so much (we are only going to buffer a few seconds)
