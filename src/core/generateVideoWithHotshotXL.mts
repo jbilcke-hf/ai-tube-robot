@@ -22,7 +22,7 @@ export const generateVideoWithHotshotXL = async ({
   const seed = generateSeed()
   const nbFrames = 8 // for now the only values that make sense are 1 (for a jpg) or 8 (for a video)
   const videoDuration = 1000 // for now Hotshot doesn't really supports anything else
-  const nbSteps = 60 // when rendering a final video, we want a value like 50 or 70 here
+  const nbSteps = 50 // when rendering a final video, we want a value like 50 or 70 here
   const size = "672x384" // "768x320"
 
   // for jbilcke-hf/sdxl-cinematic-2 it is "cinematic-2"
