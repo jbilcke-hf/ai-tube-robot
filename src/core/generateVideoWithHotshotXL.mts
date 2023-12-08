@@ -1,5 +1,7 @@
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { generateSeed } from "./generateSeed.mts"
+import { getSDXLModel } from "./getSDXLModel.mts"
+
 import { getNegativePrompt, getPositivePrompt } from "./promptUtilities.mts"
 
 const gradioApi = `${process.env.AI_TUBE_MODEL_HOTSHOT_XL_GRADIO_URL || ""}`
@@ -8,21 +10,43 @@ const accessToken = `${process.env.AI_TUBE_MODEL_HOTSHOT_XL_SECRET_TOKEN || ""}`
 // this generates a base64 video
 export const generateVideoWithHotshotXL = async ({
   prompt,
+  lora = "",
+  style = ""
 }: {
   prompt: string
+  lora?: string
+  style?: string
 }): Promise<string> => {
   
   const negPrompt = ""
   const seed = generateSeed()
   const nbFrames = 8 // for now the only values that make sense are 1 (for a jpg) or 8 (for a video)
   const videoDuration = 1000 // for now Hotshot doesn't really supports anything else
-  const nbSteps = 30 // when rendering a final video, we want a value like 50 or 70 here
+  const nbSteps = 70 // when rendering a final video, we want a value like 50 or 70 here
   const size = "672x384" // "768x320"
 
   // for jbilcke-hf/sdxl-cinematic-2 it is "cinematic-2"
-  const triggerWord = "cinematic-2"
-  const huggingFaceLora = "jbilcke-hf/sdxl-cinematic-2"
+  let triggerWord = "cinematic-2"
+  let huggingFaceLora = "jbilcke-hf/sdxl-cinematic-2"
   
+  lora = lora.trim()
+  style = style.trim()
+
+  if (lora) {
+    huggingFaceLora = lora
+    if (style) {
+      triggerWord = style
+    } else {
+      try {
+        const model = await getSDXLModel(lora)
+        triggerWord = model.trigger_word
+      } catch (err) {
+        console.error(`user tried to use lora model ${lora} without a style/trigger parameter, but we couldn't find it ourselves`)
+        triggerWord = ""
+      }
+    }
+  }
+
   // pimp the prompt
   const positivePrompt = getPositivePrompt(prompt, triggerWord)
   const negativePrompt = getNegativePrompt(negPrompt)

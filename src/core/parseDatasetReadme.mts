@@ -11,7 +11,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
 
     // console.log("DEBUG README:", { metadata, content })
     
-    const { model, thumbnail, voice, description, prompt, tags } = parseMarkdown(content)
+    const { model, lora, style, thumbnail, voice, description, prompt, tags } = parseMarkdown(content)
 
     return {
       license: typeof metadata?.license === "string" ? metadata.license : "",
@@ -19,6 +19,8 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       hf_tags: Array.isArray(metadata?.tags) ? metadata.tags : [],
       tags: tags && typeof tags === "string" ? tags.split("-").map(x => x.trim()).filter(x => x) : [], 
       model,
+      lora,
+      style,
       thumbnail,
       voice,
       description,
@@ -31,6 +33,8 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       hf_tags: [], // Hugging Face tags
       tags: [],
       model: "",
+      lora: "",
+      style: "",
       thumbnail: "",
       voice: "",
       description: "",
@@ -46,29 +50,34 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
  */
 function parseMarkdown(markdown: string): {
   model: string
+  lora: string
+  style: string
   thumbnail: string
   voice: string
   description: string
   prompt: string
   tags: string
 } {
- // Improved regular expression to find markdown sections and accommodate multi-line content.
- const sectionRegex = /^#+\s+(?<key>.+?)\n\n?(?<content>[^#]+)/gm;
+  // console.log("markdown:", markdown)
+  // Improved regular expression to find markdown sections and accommodate multi-line content.
+  const sectionRegex = /^#+\s+(?<key>.+?)\n\n?(?<content>[^#]+)/gm;
 
- const sections: { [key: string]: string } = {};
+  const sections: { [key: string]: string } = {};
 
- let match;
- while ((match = sectionRegex.exec(markdown))) {
-   const { key, content } = match.groups as { key: string; content: string };
-   sections[key.trim().toLowerCase()] = content.trim();
- }
+  let match;
+  while ((match = sectionRegex.exec(markdown))) {
+    const { key, content } = match.groups as { key: string; content: string };
+    sections[key.trim().toLowerCase()] = content.trim();
+  }
 
- return {
-   description: sections["description"] || "",
-   model: sections["model"] || "",
-   thumbnail: sections["thumbnail"] || "",
-   voice: sections["voice"] || "",
-   prompt: sections["prompt"] || "",
-   tags: sections["tags"] || "",
- };
+  return {
+    description: sections["description"] || "",
+    model: sections["model"] || "",
+    lora: sections["lora"] || "",
+    style: sections["style"] || "",
+    thumbnail: sections["thumbnail"] || "",
+    voice: sections["voice"] || "",
+    prompt: sections["prompt"] || "",
+    tags: sections["tags"] || "",
+  };
 }

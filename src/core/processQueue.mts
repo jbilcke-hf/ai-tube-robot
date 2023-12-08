@@ -11,6 +11,7 @@ import { getIndex } from "./getIndex.mts"
 import { sleep } from "./sleep.mts"
 import { updateIndex } from "./updateIndex.mts"
 import { uploadFinalVideoFileToAITube } from "./uploadFinalVideoFileToAITube.mts"
+import { uploadVideoMeta } from "./uploadVideoMeta.mts"
 
 type GeneratedScene = {
   text: string // plain text, trimmed
@@ -23,9 +24,7 @@ export async function processQueue(): Promise<number> {
   
   const queuedVideos = await getIndex({ status: "queued", renewCache: true })
   const publishedVideos = await getIndex({ status: "published", renewCache: true })
-  const generatingVideos = await getIndex({ status: "generating", renewCache: true })
-  const failedVideos = await getIndex({ status: "error", renewCache: true })
-  
+
   const videoEntries = Object.entries(queuedVideos) as [string, VideoInfo][]
 
   console.log(` |- ${videoEntries.length} videos are currently queued`)
@@ -38,9 +37,8 @@ export async function processQueue(): Promise<number> {
     console.log(` \\`)
 
     video.status = "generating"
-    generatingVideos[video.id] = video
-    await updateIndex({ status: "generating", videos: generatingVideos })
-
+    await uploadVideoMeta({ video })
+ 
     // the use case for doing this is debugging
     if (!keepVideoInQueue) {
       delete queuedVideos[video.id]
@@ -57,7 +55,7 @@ export async function processQueue(): Promise<number> {
     try {
       scenes = await generateAudioStory({
         prompt: video.prompt,
-        voice: "Cloée",
+        voice: video.channel.voice,
         // maxLines: 5,
         neverThrow: true,
       })
@@ -175,18 +173,29 @@ export async function processQueue(): Promise<number> {
 
         // let's use what we know works well
         let base64Video = ""
+        const hotshotParams = {
+          prompt,
+          lora: video.channel.lora,
+          style: video.channel.style
+        }
         try {
-          base64Video = await generateVideoWithHotshotXL({ prompt: prompt })
+          base64Video = await generateVideoWithHotshotXL(hotshotParams)
         } catch (err) {
           try {
             await sleep(2000)
           // Gradio spaces often fail (out of memory etc), so let's try again
-            base64Video = await generateVideoWithHotshotXL({ prompt: prompt + "." })
+            base64Video = await generateVideoWithHotshotXL({
+              ...hotshotParams,
+              prompt: prompt + ".",
+            })
           } catch (err3) {
             try {
               await sleep(4000)
               // Gradio spaces often fail (out of memory etc), so let's try one last time
-                base64Video = await generateVideoWithHotshotXL({ prompt: prompt + ".." })
+                base64Video = await generateVideoWithHotshotXL({
+                  ...hotshotParams,
+                  prompt: prompt + "..",
+                })
               } catch (err2) {
                 base64Video = ""
               }
@@ -248,23 +257,16 @@ export async function processQueue(): Promise<number> {
 
     if (!videosToConcatenate.length) {
 
-      if (generatingVideos[video.id]) {
-        delete generatingVideos[video.id]
-        await sleep(1000)
-        await updateIndex({ status: "generating", videos: generatingVideos })
-      }
-
       if (queuedVideos[video.id]) {
         delete queuedVideos[video.id]
-        await sleep(1000)
         await updateIndex({ status: "queued", videos: queuedVideos })
+        await sleep(1000)
       }
 
       video.status = "error"
-      failedVideos[video.id] = video
-      await sleep(1000)
-      await updateIndex({ status: "error", videos: failedVideos })
+      await uploadVideoMeta({ video })
 
+      console.log("  -> no video to concatenate, skipping..")
       continue
     }
     
@@ -285,13 +287,10 @@ export async function processQueue(): Promise<number> {
 
     publishedVideos[video.id] = video
 
-    await updateIndex({ status: "published", videos: publishedVideos })
+    await uploadVideoMeta({ video })
 
-    if (generatingVideos[video.id]) {
-      delete generatingVideos[video.id]
-      await sleep(1000)
-      await updateIndex({ status: "generating", videos: generatingVideos })
-    }
+    // TODO: we should put this index in the database, as it might grow to 10k and more
+    await updateIndex({ status: "published", videos: publishedVideos })
 
     // everything looks fine! let's mark the video as finished
     if (!keepVideoInQueue) {

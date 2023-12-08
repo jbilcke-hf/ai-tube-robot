@@ -12,7 +12,7 @@ export async function generateAudioStory({
   neverThrow,
 }: {
   prompt: string
-  voice: TTSVoice
+  voice?: string
   // maxLines: number
   neverThrow?: boolean
 }): Promise<StoryLine[]> {
@@ -38,7 +38,10 @@ export async function generateAudioStory({
           apiStoryServerApiToken,
           promptToGenerateAudioStory,
           prompt,
-          voice,
+
+          // TODO: add support for custom wav
+          voice === "Julian" ? "Julian" : "Cloée",
+
           // maxLines,
         ],
       }),

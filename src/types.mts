@@ -211,6 +211,14 @@ export type ChannelInfo = {
 
   thumbnail: string
 
+  model: string
+
+  lora: string
+  
+  style: string
+
+  voice: string
+
   /**
    * The system prompt
    */
@@ -364,6 +372,8 @@ export type ParsedDatasetReadme = {
   license: string
   pretty_name: string
   model: string
+  lora: string
+  style: string
   thumbnail: string
   voice: string
   tags: string[]
@@ -415,4 +425,15 @@ export type StoryLine = {
 
 export type Story = {
   lines: StoryLine[]
+}
+
+export type SDXLModel = {
+  image: string
+  title: string
+  repo: string
+  trigger_word: string
+  weights: string
+  is_compatible: boolean
+  likes: number
+  downloads: number
 }
