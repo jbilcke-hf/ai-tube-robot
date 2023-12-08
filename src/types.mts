@@ -441,4 +441,5 @@ export type SDXLModel = {
   text_embedding_weights?: string
   is_nc?: boolean
   "new"?: boolean
+  is_pivotal?: boolean
 }
