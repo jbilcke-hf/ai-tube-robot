@@ -435,5 +435,10 @@ export type SDXLModel = {
   weights: string
   is_compatible: boolean
   likes: number
-  downloads: number
+  downloads?: number
+
+  // additional fields, but we dont't care about them
+  text_embedding_weights?: string
+  is_nc?: boolean
+  "new"?: boolean
 }
