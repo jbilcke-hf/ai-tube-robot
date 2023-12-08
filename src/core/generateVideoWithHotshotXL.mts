@@ -53,6 +53,17 @@ export const generateVideoWithHotshotXL = async ({
 
   try {
 
+    console.log(`calling HotshotXL API with params:`, {
+      positivePrompt,
+      negativePrompt,
+      huggingFaceLora,
+      size,
+      seed: generateSeed(),
+      nbSteps,
+      nbFrames,
+      videoDuration,
+    })
+
     const res = await fetch(gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict", {
       method: "POST",
       headers: {
@@ -96,6 +107,7 @@ export const generateVideoWithHotshotXL = async ({
 
     return addBase64HeaderToMp4(base64Content)
   } catch (err) {
+    console.error(`failed to call the HotshotXL API: ${err}`)
     throw err
   }
 }
