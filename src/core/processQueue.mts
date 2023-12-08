@@ -4,8 +4,7 @@ import { concatenateVideos } from "./concatenateVideos.mts"
 import { concatenateVideosWithAudio } from "./concatenateVideosWithAudio.mts"
 import { generateAudioStory } from "./generateAudioStory.mts"
 import { generateShots } from "./generateShots.mts"
-import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
-import { generateVideoWithLaVieLegacy } from "./generateVideoWithLaVieLegacy.mts"
+import { generateVideo } from "./generateVideo.mts"
 
 import { getIndex } from "./getIndex.mts"
 import { sleep } from "./sleep.mts"
@@ -166,43 +165,10 @@ export async function processQueue(): Promise<number> {
         console.log(`      |-- generating shot from prompt "${prompt.slice(0, 60)}..."`)
         // we could also generate an image, but no human is going to curate it,
         // so let's just generate things blindly
-
-        // Gradio API is broken for some unknown reasons (tried pretty much everything)
-        // const base64Video = await generateVideoWithLaVieLegacy({ prompt: prompt })
-        // const base64Video = await generateVideoWithLaViLModern({ prompt: prompt })
-
-        // let's use what we know works well
-        let base64Video = ""
-        const hotshotParams = {
-          prompt,
-          lora: video.channel.lora,
-          style: video.channel.style
-        }
-        try {
-          base64Video = await generateVideoWithHotshotXL(hotshotParams)
-        } catch (err) {
-          try {
-            await sleep(2000)
-          // Gradio spaces often fail (out of memory etc), so let's try again
-            base64Video = await generateVideoWithHotshotXL({
-              ...hotshotParams,
-              prompt: prompt + ".",
-            })
-          } catch (err3) {
-            try {
-              await sleep(4000)
-              // Gradio spaces often fail (out of memory etc), so let's try one last time
-                base64Video = await generateVideoWithHotshotXL({
-                  ...hotshotParams,
-                  prompt: prompt + "..",
-                })
-              } catch (err2) {
-                base64Video = ""
-              }
-          }
-        }
-
-        if (!base64Video.length || base64Video.length < 200) {
+        
+        const base64Video = await generateVideo(prompt, video)
+        
+        if (!base64Video) {
           console.log(`      | '- failed to generate a video snippet, skipping..`)
           continue
         }

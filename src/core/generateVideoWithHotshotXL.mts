@@ -1,3 +1,4 @@
+import { VideoGenerationParams } from "../types.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { generateSeed } from "./generateSeed.mts"
 import { getSDXLModel } from "./getSDXLModel.mts"
@@ -12,11 +13,7 @@ export const generateVideoWithHotshotXL = async ({
   prompt,
   lora = "",
   style = ""
-}: {
-  prompt: string
-  lora?: string
-  style?: string
-}): Promise<string> => {
+}: VideoGenerationParams): Promise<string> => {
   
   const negPrompt = ""
   const seed = generateSeed()
@@ -29,8 +26,8 @@ export const generateVideoWithHotshotXL = async ({
   let triggerWord = "cinematic-2"
   let huggingFaceLora = "jbilcke-hf/sdxl-cinematic-2"
   
-  lora = lora.trim()
-  style = style.trim()
+  lora = `${lora || ""}`.trim()
+  style = `${style || ""}`.trim()
 
   if (lora) {
     huggingFaceLora = lora
@@ -61,7 +58,7 @@ export const generateVideoWithHotshotXL = async ({
       negativePrompt,
       huggingFaceLora,
       size,
-      seed: generateSeed(),
+      seed,
       nbSteps,
       nbFrames,
       videoDuration,
@@ -81,7 +78,7 @@ export const generateVideoWithHotshotXL = async ({
           negativePrompt,
           huggingFaceLora,
           size,
-          generateSeed(),
+          seed,
           nbSteps,
           nbFrames,
           videoDuration,
@@ -91,7 +88,8 @@ export const generateVideoWithHotshotXL = async ({
       // we can also use this (see https://vercel.com/blog/vercel-cache-api-nextjs-cache)
       // next: { revalidate: 1 }
     })
-  
+
+
     const { data } = await res.json()
   
     // console.log("data:", data)
@@ -110,7 +108,8 @@ export const generateVideoWithHotshotXL = async ({
 
     return addBase64HeaderToMp4(base64Content)
   } catch (err) {
-    console.error(`failed to call the HotshotXL API: ${err}`)
+    console.error(`failed to call the HotshotXL API:`)
+    console.error(err)
     throw err
   }
 }

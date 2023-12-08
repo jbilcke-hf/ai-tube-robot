@@ -349,6 +349,17 @@ export type VideoInfo = {
   channel: ChannelInfo
 }
 
+export type VideoGenerationParams = {
+  prompt: string
+  lora?: string
+  style?: string
+}
+
+export type VideoGenerationModel =
+  | "HotshotXL"
+  | "SVD"
+  | "LaVie"
+
 export type InterfaceDisplayMode =
   | "desktop"
   | "tv"
