@@ -5,6 +5,7 @@ import { ChannelInfo, UpdateQueueRequest, VideoInfo } from "../types.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
 import { getIndex } from "./getIndex.mts"
 import { updateIndex } from "./updateIndex.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
 
 export async function updateQueueWithNewRequests(apiKey: string, optionalChannel?: ChannelInfo): Promise<number> {
   const isAdmin = apiKey === adminApiKey
@@ -57,8 +58,13 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
         status: "queued",
         label: videoRequest.label,
         description: videoRequest.description,
-        prompt: videoRequest.prompt,
-        thumbnailUrl: videoRequest.thumbnailUrl,
+        prompt: videoRequest.prompt || "",
+        model: parseVideoModelName(videoRequest.model, channel.model),
+        lora: videoRequest.lora || "",
+        style: videoRequest.style || "",
+        voice: videoRequest.voice || "",
+        music: videoRequest.music || "",
+        thumbnailUrl: videoRequest.thumbnailUrl || "",
         assetUrl: "", // will be filled in async, later
         numberOfViews: 0, // we reset
         numberOfLikes: 0, // we reset

@@ -2,6 +2,7 @@ import fs from "node:fs"
 
 import dotenv from "dotenv"
 import { Credentials } from "@huggingface/hub"
+import { VideoGenerationModel } from "./types.mts"
 
 dotenv.config()
 
@@ -24,6 +25,9 @@ export const adminApiKey = `${process.env.ADMIN_HUGGING_FACE_API_TOKEN || ""}`
 export const adminUsername = `${process.env.ADMIN_HUGGING_FACE_USERNAME || ""}`
 
 export const adminCredentials: Credentials = { accessToken: adminApiKey }
+
+// TODO: switch to SVD
+export const defaultVideoModel: VideoGenerationModel = "HotshotXL"
 
 export const aiStoryServerApiUrl = `${process.env.AI_STORY_SERVER_API_GRADIO_URL || ""}`
 export const apiStoryServerApiToken = `${process.env.AI_STORY_SERVER_API_SECRET_TOKEN || ""}`

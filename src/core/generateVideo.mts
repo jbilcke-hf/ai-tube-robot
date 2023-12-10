@@ -1,12 +1,13 @@
 
 import { VideoGenerationParams, VideoInfo } from "../types.mts"
 
-import { parseModelName } from "./parseModelName.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { sleep } from "./sleep.mts"
 
 import { generateVideoWithLaVie } from "./generateVideoWithLaVie.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithSVD } from "./generateVideoWithSVD.mts"
+import { defaultVideoModel } from "../config.mts"
 
 export async function generateVideo(prompt: string, video: VideoInfo): Promise<string> {
 
@@ -19,7 +20,7 @@ export async function generateVideo(prompt: string, video: VideoInfo): Promise<s
   }
 
   // let's try to detect the model!
-  const model = parseModelName(video.channel.model)
+  const model = parseVideoModelName(video.channel.model, defaultVideoModel)
 
   // TODO: add LaVie
 

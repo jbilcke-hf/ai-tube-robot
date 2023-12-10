@@ -1,6 +1,6 @@
 import { VideoGenerationModel } from "../types.mts"
 
-export function parseModelName(text?: string): VideoGenerationModel {
+export function parseVideoModelName(text: any, defaultToUse: VideoGenerationModel): VideoGenerationModel {
   const rawModelString = `${text || ""}`.trim().toLowerCase()
 
   let model: VideoGenerationModel = "HotshotXL"
@@ -20,5 +20,5 @@ export function parseModelName(text?: string): VideoGenerationModel {
     model = "LaVie"
   }
 
-  return model
+  return defaultToUse
 }

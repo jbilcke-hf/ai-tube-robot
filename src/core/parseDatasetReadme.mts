@@ -2,6 +2,8 @@
 import metadataParser from "markdown-yaml-metadata-parser"
 
 import { ParsedDatasetReadme, ParsedMetadataAndContent } from "../types.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
+import { defaultVideoModel } from "../config.mts"
 
 export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
   try {
@@ -18,7 +20,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       pretty_name: typeof metadata?.pretty_name === "string" ? metadata.pretty_name : "",
       hf_tags: Array.isArray(metadata?.tags) ? metadata.tags : [],
       tags: tags && typeof tags === "string" ? tags.split("- ").map(x => x.trim()).filter(x => x) : [], 
-      model,
+      model: parseVideoModelName(model, defaultVideoModel),
       lora,
       style: style && typeof style === "string" ? style.split("- ").map(x => x.trim()).filter(x => x).join(", ") : [].join(", "), 
       thumbnail,
@@ -33,7 +35,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       pretty_name: "",
       hf_tags: [], // Hugging Face tags
       tags: [],
-      model: "",
+      model: "HotshotXL",
       lora: "",
       style: "",
       thumbnail: "",

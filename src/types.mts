@@ -211,7 +211,7 @@ export type ChannelInfo = {
 
   thumbnail: string
 
-  model: string
+  model: VideoGenerationModel
 
   lora: string
   
@@ -282,7 +282,7 @@ export type VideoRequest = {
   /**
    * Model name
    */
-  model: string
+  model: VideoGenerationModel
 
   /**
    * LoRA name
@@ -373,7 +373,7 @@ export type VideoInfo = {
   /**
    * Model name
    */
-  model: string
+  model: VideoGenerationModel
 
   /**
    * LoRA name
@@ -434,7 +434,7 @@ export type Settings = {
 export type ParsedDatasetReadme = {
   license: string
   pretty_name: string
-  model: string
+  model: VideoGenerationModel
   lora: string
   style: string
   thumbnail: string
@@ -460,7 +460,7 @@ export type ParsedDatasetPrompt = {
   description: string
   prompt: string
   tags: string[]
-  model: string
+  model: VideoGenerationModel
   lora: string
   style: string
   thumbnail: string

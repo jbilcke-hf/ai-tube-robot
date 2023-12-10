@@ -1,34 +1,37 @@
-import { ParsedDatasetPrompt } from "../types.mts"
+import { ChannelInfo, ParsedDatasetPrompt } from "../types.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
 
 
-export function parseDatasetPrompt(markdown: string = ""): ParsedDatasetPrompt {
+export function parseDatasetPrompt(markdown: string, channel: ChannelInfo): ParsedDatasetPrompt {
   try {
     const { title, description, tags, prompt, model, lora, style, thumbnail, voice, music } = parseMarkdown(markdown)
 
     return {
       title: typeof title === "string" && title ? title : "",
       description: typeof description === "string" && description ? description : "",
-      tags: tags && typeof tags === "string" ? tags.split("-").map(x => x.trim()).filter(x => x) : [], 
+      tags:
+        tags && typeof tags === "string" ? tags.split("-").map(x => x.trim()).filter(x => x)
+        : (channel.tags || []),
       prompt: typeof prompt === "string" && prompt ? prompt : "",
-      model: typeof model === "string" && model ? model : "",
-      lora: typeof lora === "string" && lora ? lora : "",
-      style: typeof style === "string" && style ? style : "",
+      model: parseVideoModelName(model, channel.model),
+      lora: typeof lora === "string" && lora ? lora : (channel.lora || ""),
+      style: typeof style === "string" && style ? style : (channel.style || ""),
       thumbnail: typeof thumbnail === "string" && thumbnail ? thumbnail : "",
-      voice: typeof voice === "string" && voice ? voice : "",
-      music: typeof music === "string" && music ? music : "",
+      voice: typeof voice === "string" && voice ? voice : (channel.voice || ""),
+      music: typeof music === "string" && music ? music : (channel.music || ""),
     }
   } catch (err) {
     return {
       title: "",
       description:  "",
-      tags: [],
+      tags: channel.tags || [],
       prompt: "",
-      model: "",
-      lora: "",
-      style: "",
+      model: channel.model || "HotshotXL",
+      lora: channel.lora || "",
+      style: channel.style || "",
       thumbnail: "",
-      voice: "",
-      music: "",
+      voice: channel.voice || "",
+      music: channel.music || "",
     }
   }
 }
@@ -50,7 +53,7 @@ function parseMarkdown(markdown: string): {
   voice: string
   music: string
 } {
-  markdown = markdown.trim()
+  markdown = `${markdown || ""}`.trim()
   // Improved regular expression to find markdown sections and accommodate multi-line content.
   const sectionRegex = /^#+\s+(?<key>.+?)\n\n?(?<content>[^#]+)/gm;
 

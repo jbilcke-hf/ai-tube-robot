@@ -5,6 +5,7 @@ import { downloadFileAsText } from "./downloadFileAsText.mts"
 import { getCredentials } from "./getCredentials.mts"
 import { parseDatasetPrompt } from "./parseDatasetPrompt.mts"
 import { parsePromptFileName } from "./parsePromptFileName.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
 
 /**
  * Return all the videos requests created by a user on their channel
@@ -71,12 +72,13 @@ export async function getVideoRequestsFromChannel({
           continue
         }
 
-        const { title, description, tags, prompt, thumbnail } = parseDatasetPrompt(rawMarkdown)
+        const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice } = parseDatasetPrompt(rawMarkdown, channel)
 
         if (!title || !description || !prompt) {
           // console.log("dataset prompt is incomplete or unparseable")
           continue
         }
+
         // console.log("prompt parsed markdown:", { title, description, tags })
 
         let thumbnailUrl =
@@ -92,9 +94,13 @@ export async function getVideoRequestsFromChannel({
           description,
           prompt,
           thumbnailUrl,
-    
+          model,
+          lora,
+          style,
+          voice,
+          music,
           updatedAt: file.lastCommit?.date || new Date().toISOString(),
-          tags, // read them from the file?
+          tags: Array.isArray(tags) && tags.length ? tags : channel.tags,
           channel,
         }
 

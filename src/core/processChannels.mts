@@ -3,6 +3,7 @@ import { VideoInfo } from "../types.mts"
 import { getChannels } from "./getChannels.mts"
 import { getIndex } from "./getIndex.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
+import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { sleep } from "./sleep.mts"
 import { updateIndex } from "./updateIndex.mts"
 import { updateQueueWithNewRequests } from "./updateQueueWithNewRequests.mts"
@@ -60,7 +61,12 @@ export async function processChannels(): Promise<number> {
           label: videoRequest.label,
           description: videoRequest.description,
           prompt: videoRequest.prompt,
-          thumbnailUrl: channel.thumbnail, // will be generated in async
+          thumbnailUrl: videoRequest.thumbnailUrl, // will be generated in async
+          model: videoRequest.model,
+          lora: videoRequest.lora,
+          style: videoRequest.style,
+          voice: videoRequest.voice,
+          music: videoRequest.music,
           assetUrl: "", // will be generated in async
           numberOfViews: 0,
           numberOfLikes: 0,
