@@ -20,16 +20,18 @@ export async function generateVideo(prompt: string, video: VideoInfo): Promise<s
   }
 
   // let's try to detect the model!
-  const model = parseVideoModelName(video.channel.model, defaultVideoModel)
+  const channelVideoModel = parseVideoModelName(video.channel.model, defaultVideoModel)
+
+  const videoModel = parseVideoModelName(video.model, channelVideoModel)
 
   // TODO: add LaVie
 
   // all those functions normally have the same signature
   // (p: VideoGenerationParams) => Promise<string>
   const generateVideoWithModel =
-    model === "SVD"
+  videoModel === "SVD"
     ? generateVideoWithSVD
-    : model === "LaVie"
+    : videoModel === "LaVie"
     ? generateVideoWithLaVie
     : generateVideoWithHotshotXL
 
