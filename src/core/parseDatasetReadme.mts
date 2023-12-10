@@ -11,7 +11,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
 
     // console.log("DEBUG README:", { metadata, content })
     
-    const { model, lora, style, thumbnail, voice, description, prompt, tags } = parseMarkdown(content)
+    const { model, lora, style, thumbnail, voice, music, description, prompt, tags } = parseMarkdown(content)
 
     return {
       license: typeof metadata?.license === "string" ? metadata.license : "",
@@ -23,6 +23,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       style: style && typeof style === "string" ? style.split("- ").map(x => x.trim()).filter(x => x).join(", ") : [].join(", "), 
       thumbnail,
       voice,
+      music,
       description,
       prompt,
     }
@@ -37,6 +38,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       style: "",
       thumbnail: "",
       voice: "",
+      music: "",
       description: "",
       prompt: "",
     }
@@ -54,6 +56,7 @@ function parseMarkdown(markdown: string): {
   style: string
   thumbnail: string
   voice: string
+  music: string
   description: string
   prompt: string
   tags: string
@@ -77,6 +80,7 @@ function parseMarkdown(markdown: string): {
     style: sections["style"] || "",
     thumbnail: sections["thumbnail"] || "",
     voice: sections["voice"] || "",
+    music: sections["music"] || "",
     prompt: sections["prompt"] || "",
     tags: sections["tags"] || "",
   };

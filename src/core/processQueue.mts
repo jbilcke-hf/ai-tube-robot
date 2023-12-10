@@ -102,7 +102,7 @@ export async function processQueue(): Promise<number> {
 
       const promptParams = {
         generalContext: video.prompt,
-        generalStyle: "photo-realistic, documentary",
+        generalStyle: video.channel.style || "photo-realistic, documentary",
         previousScenes: previousScenes.join(" "),
         currentScene: text,
         neverThrow: true,

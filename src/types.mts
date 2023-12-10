@@ -219,6 +219,8 @@ export type ChannelInfo = {
 
   voice: string
 
+  music: string
+
   /**
    * The system prompt
    */
@@ -276,6 +278,31 @@ export type VideoRequest = {
    * Arbotrary string tags to label the content
    */
   tags: string[]
+
+  /**
+   * Model name
+   */
+  model: string
+
+  /**
+   * LoRA name
+   */
+  lora: string
+
+  /**
+   * style name
+   */
+  style: string
+
+  /**
+   * Music prompt
+   */
+  music: string
+
+  /**
+   * Voice prompt
+   */
+  voice: string
 
   /**
    * ID of the channel
@@ -344,6 +371,31 @@ export type VideoInfo = {
   tags: string[]
 
   /**
+   * Model name
+   */
+  model: string
+
+  /**
+   * LoRA name
+   */
+  lora: string
+
+  /**
+   * style name
+   */
+  style: string
+
+  /**
+   * Music prompt
+   */
+  music: string
+
+  /**
+   * Voice prompt
+   */
+  voice: string
+
+  /**
    * The channel
    */
   channel: ChannelInfo
@@ -387,6 +439,7 @@ export type ParsedDatasetReadme = {
   style: string
   thumbnail: string
   voice: string
+  music: string
   tags: string[]
   hf_tags: string[]
   description: string
@@ -405,9 +458,14 @@ export type ParsedMetadataAndContent = {
 export type ParsedDatasetPrompt = {
   title: string
   description: string
-  tags: string[]
   prompt: string
+  tags: string[]
+  model: string
+  lora: string
+  style: string
   thumbnail: string
+  voice: string
+  music: string
 }
 
 export type VideoRequestResponse = {

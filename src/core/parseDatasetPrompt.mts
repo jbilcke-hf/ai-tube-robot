@@ -3,22 +3,32 @@ import { ParsedDatasetPrompt } from "../types.mts"
 
 export function parseDatasetPrompt(markdown: string = ""): ParsedDatasetPrompt {
   try {
-    const { title, description, tags, prompt, thumbnail } = parseMarkdown(markdown)
+    const { title, description, tags, prompt, model, lora, style, thumbnail, voice, music } = parseMarkdown(markdown)
 
     return {
       title: typeof title === "string" && title ? title : "",
       description: typeof description === "string" && description ? description : "",
       tags: tags && typeof tags === "string" ? tags.split("-").map(x => x.trim()).filter(x => x) : [], 
       prompt: typeof prompt === "string" && prompt ? prompt : "",
+      model: typeof model === "string" && model ? model : "",
+      lora: typeof lora === "string" && lora ? lora : "",
+      style: typeof style === "string" && style ? style : "",
       thumbnail: typeof thumbnail === "string" && thumbnail ? thumbnail : "",
+      voice: typeof voice === "string" && voice ? voice : "",
+      music: typeof music === "string" && music ? music : "",
     }
   } catch (err) {
     return {
       title: "",
       description:  "",
       tags: [],
-      prompt:  "",
+      prompt: "",
+      model: "",
+      lora: "",
+      style: "",
       thumbnail: "",
+      voice: "",
+      music: "",
     }
   }
 }
@@ -33,7 +43,12 @@ function parseMarkdown(markdown: string): {
   description: string
   tags: string
   prompt: string
+  model: string
+  lora: string
+  style: string
   thumbnail: string
+  voice: string
+  music: string
 } {
   markdown = markdown.trim()
   // Improved regular expression to find markdown sections and accommodate multi-line content.
@@ -52,6 +67,11 @@ function parseMarkdown(markdown: string): {
     description: sections["description"] || "",
     tags: sections["tags"] || "",
     prompt: sections["prompt"] || "",
+    model: sections["model"] || "",
+    lora: sections["lora"] || "",
+    style: sections["style"] || "",
     thumbnail: sections["thumbnail"] || "",
+    voice: sections["voice"] || "",
+    music: sections["music"] || "",
   };
 }
