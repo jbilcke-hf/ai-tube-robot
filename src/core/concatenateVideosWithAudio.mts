@@ -92,7 +92,7 @@ export const concatenateVideosWithAudio = async ({
         // // The `-shortest` flag might cut the video, so it's commented out here
         // .outputOptions("-shortest")
 
-        .addInput(tempFilePath)
+        .addInput(tempFilePath.filepath)
 
       if (audioTracks.length) {
         cmd = cmd

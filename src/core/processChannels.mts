@@ -1,4 +1,4 @@
-import { enableRepublishing } from "../config.mts"
+import { enableRepublishing, priorityAccounts } from "../config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./getChannels.mts"
 import { getIndex } from "./getIndex.mts"
@@ -24,11 +24,16 @@ export async function processChannels(): Promise<number> {
 
   console.log(`processChannels(): ${channels.length} public channels identified`)
 
+  // put high-priority accounts (developers, admins, VIPs etc) at the top
+  channels.sort((a, b) => {
+    const isPriorityAccount = priorityAccounts.includes(a.datasetUser.toLowerCase())
+    return isPriorityAccount ? -1 : +1
+  })
+
   let nbNewlyEnqueued = 0
 
   for (const channel of channels) {
-
-    await sleep(1000)
+    await sleep(500)
 
     console.log(`scanning channel "${channel.datasetName}" by @${channel.datasetUser}`)
     

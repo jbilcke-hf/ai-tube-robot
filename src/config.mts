@@ -57,5 +57,11 @@ export const skipProcessingChannels = false
 
 export const skipProcessingQueue = false
 
+// to avoid waiting for hours to test a new feature (eg. an AI model),
+// we use the priority system to quicky iterate on the videos of core developers
+export const priorityAccounts = [
+  "jbilcke-hf"
+]
+
 // ------------------------------------------------------------------------------------
 
