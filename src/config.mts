@@ -63,5 +63,7 @@ export const priorityAccounts = [
   "jbilcke-hf"
 ]
 
+export const skipLowPriorityAccounts = true
+
 // ------------------------------------------------------------------------------------
 

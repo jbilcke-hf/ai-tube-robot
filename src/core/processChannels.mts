@@ -1,8 +1,9 @@
-import { enableRepublishing, priorityAccounts } from "../config.mts"
+import { enableRepublishing, priorityAccounts, skipLowPriorityAccounts } from "../config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./getChannels.mts"
 import { getIndex } from "./getIndex.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
+import { isHighPriorityChannel } from "./isHighPriorityChannel.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { sleep } from "./sleep.mts"
 import { updateIndex } from "./updateIndex.mts"
@@ -20,15 +21,22 @@ export async function processChannels(): Promise<number> {
 
   console.log("processChannels(): checking the Hugging Face platform for AI Tube channels")
   
-  const channels = await getChannels({})
+  let channels = await getChannels({})
 
   console.log(`processChannels(): ${channels.length} public channels identified`)
 
-  // put high-priority accounts (developers, admins, VIPs etc) at the top
-  channels.sort((a, b) => {
-    const isPriorityAccount = priorityAccounts.includes(a.datasetUser.toLowerCase())
-    return isPriorityAccount ? -1 : +1
-  })
+  if (skipLowPriorityAccounts) {
+    console.log("processChannels(): skipLowPriorityAccounts is toggled ON")
+    channels = channels.filter(channel => isHighPriorityChannel(channel))
+    console.log("skipLowPriorityAccounts(): we are only keeping those channels:", {
+      channels
+    })
+  } else {
+    // put high-priority accounts (developers, admins, VIPs etc) at the top
+    channels.sort((a, b) => {
+      return isHighPriorityChannel(a) ? -1 : +1
+    })
+  }
 
   let nbNewlyEnqueued = 0
 
