@@ -407,6 +407,11 @@ export type VideoGenerationParams = {
   style?: string
 }
 
+export type MusicGenerationParams = {
+  prompt: string
+  durationInSec: number
+}
+
 export type VideoGenerationModel =
   | "HotshotXL"
   | "SVD"

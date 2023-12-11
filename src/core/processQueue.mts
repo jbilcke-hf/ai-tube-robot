@@ -3,10 +3,12 @@ import { StoryLine, VideoInfo } from "../types.mts"
 import { concatenateVideos } from "./concatenateVideos.mts"
 import { concatenateVideosWithAudio } from "./concatenateVideosWithAudio.mts"
 import { generateAudioStory } from "./generateAudioStory.mts"
+import { generateMusicWithMusicgen } from "./generateMusicWithMusicgen.mts"
 import { generateShots } from "./generateShots.mts"
 import { generateVideo } from "./generateVideo.mts"
 
 import { getIndex } from "./getIndex.mts"
+import { parseVoiceModelName } from "./parseVoiceModelName.mts"
 import { sleep } from "./sleep.mts"
 import { updateIndex } from "./updateIndex.mts"
 import { uploadFinalVideoFileToAITube } from "./uploadFinalVideoFileToAITube.mts"
@@ -51,10 +53,15 @@ export async function processQueue(): Promise<number> {
     // first we ask the API to generate all the audio and story
     // this should take about 30 to 60 seconds
     let scenes: StoryLine[] = []
+
+    const channelVoice = parseVoiceModelName(video.channel.voice, "Cloée")
+
+    const videoVoice = parseVoiceModelName(video.voice, channelVoice.voice)
+
     try {
       scenes = await generateAudioStory({
         prompt: video.prompt,
-        voice: video.channel.voice,
+        voice: videoVoice.voice,
         // maxLines: 5,
         neverThrow: true,
       })
@@ -67,7 +74,7 @@ export async function processQueue(): Promise<number> {
         await sleep(2000)
         scenes = await generateAudioStory({
           prompt: video.prompt + ".",
-          voice: "Cloée",
+          voice: videoVoice.voice,
           // maxLines: 5,
           neverThrow: true,
         })
@@ -93,7 +100,7 @@ export async function processQueue(): Promise<number> {
         console.log(`    '-- skipping invalid scene (bad or no text: "${text}")`)
         continue
       }
-      if (!audio.length || audio.length < 200) {
+      if (!videoVoice.muted && (!audio.length || audio.length < 200)) {
         console.log(`    '-- skipping invalid scene (bad or no audio: "${audio.slice(0, 60)}...")`)
         continue
       }
@@ -194,7 +201,7 @@ export async function processQueue(): Promise<number> {
 
       console.log("      |- concatenating audio + videos")
       const filePath = await concatenateVideosWithAudio({
-        audioTrack: audio, // must a base64 WAV
+        audioTracks: videoVoice.muted ? [] : [audio], // must a base64 WAV
         videoTracks: microVideoChunksBase64, // must be an array of base64 MP4 videos
       })
 
@@ -237,9 +244,52 @@ export async function processQueue(): Promise<number> {
     }
     
     // concatenate all the videos together
-    const finalVideoPath = await concatenateVideos({
+    console.log("  |- concatenating videos..")
+    const {
+      filepath: concatenatedVideoPath,
+      durationInSec: concatenatedVideoLength
+    } = await concatenateVideos({
       videos: previousScenes.map(s => s.filePath)
     })
+
+    let musicTracks: string[] = []
+
+    const musicPrompt = video.music || video.channel.music || ""
+
+    if (musicPrompt) {
+      const musicParams = {
+        prompt: musicPrompt,
+        durationInSec: concatenatedVideoLength,
+      }
+      try {
+        console.log(`  |- generating ${concatenatedVideoLength} seconds of music..`)
+        const musicTrack = await generateMusicWithMusicgen(musicParams)
+        if (!musicTrack?.length) { throw new Error("audio is too short to be valid!")}
+        musicTracks.push(musicTrack)
+      } catch (err) {
+        try {
+          const musicTrack = await generateMusicWithMusicgen(musicParams)
+          if (!musicTrack?.length) { throw new Error("audio is too short to be valid!")}
+          musicTracks.push(musicTrack)
+        } catch (err2) {
+          console.error(`failed to generate the music, even after trying a second time`)
+        }
+      }
+    }
+
+    let finalVideoPath = concatenatedVideoPath
+
+    if (musicTracks.length) {
+      console.log(`  |- adding music to the video..`)
+      finalVideoPath = await concatenateVideosWithAudio({
+        audioTracks: musicTracks, // must a base64 WAV
+        videoTracks: [concatenatedVideoPath], // must be an array of base64 MP4 videos
+      })
+    }
+
+    // one last thing: we should mix in the music, with two mode:
+    // full or background (muted voice)
+    // generateMusicWithMusicgen
 
     console.log("  -> uploading file to AI Tube:", finalVideoPath)
 

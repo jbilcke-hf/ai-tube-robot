@@ -4,6 +4,7 @@ import { client } from "@gradio/client"
 import { generateSeed } from "./generateSeed.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { VideoGenerationParams } from "../types.mts"
+import { adminApiKey } from "../config.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
 
@@ -16,7 +17,7 @@ export async function generateVideoWithLaVie({
   // steps = 50,
 }: VideoGenerationParams): Promise<string> {
 
-  const app = await client("jbilcke-hf/ai-tube-model-lavie", { hf_token: accessToken as any });
+  const app = await client("jbilcke-hf/ai-tube-model-lavie", { hf_token: adminApiKey as any });
 
   /*
   console.log(`SEND TO ${gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict"}:`, [

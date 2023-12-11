@@ -1,4 +1,4 @@
-import { promises as fsPromises } from "node:fs"
+import { promises as fs } from "node:fs"
 import os from "node:os"
 import path from "node:path"
 
@@ -10,7 +10,7 @@ import { concatenateVideos } from "./concatenateVideos.mts";
 import { keepTemporaryFiles } from "../config.mts";
 
 type AssembleVideoOptions = {
-  audioTrack: string;
+  audioTracks: string[];
   videoTracks: string[];
 };
 
@@ -19,30 +19,36 @@ const decodeBase64ToFile = async (base64Data: string, filePath: string): Promise
   if (!data) {
     throw new Error("Invalid base64 content");
   }
-  await fsPromises.writeFile(filePath, data, { encoding: "base64" });
+  await fs.writeFile(filePath, data, { encoding: "base64" });
 
   return filePath
 };
 
 export const concatenateVideosWithAudio = async ({
-  audioTrack,
+  audioTracks,
   videoTracks
 }: AssembleVideoOptions): Promise<string> => {
   // Prepare temporary directories
   const tempDir = path.join(os.tmpdir(), uuidv4());
-  await fsPromises.mkdir(tempDir);
+  await fs.mkdir(tempDir);
 
-  let audioFilePath: string = ""
+  let audioFilePaths: string[] = []
   let videoFilePaths: string[] = []
   try {
-    // Decode base64 audio track to temporary file
-    audioFilePath = path.join(tempDir, "audio.wav");
-    await decodeBase64ToFile(addBase64HeaderToWav(audioTrack), audioFilePath);
+
+    let i = 0
+    for (const track of audioTracks) {
+      if (!track) { continue }
+      const audioFilePath = path.join(tempDir, `audio${++i}.wav`);
+      await decodeBase64ToFile(addBase64HeaderToWav(track), audioFilePath);
+      audioFilePaths.push(audioFilePath);
+    }
+
 
     // Decode and concatenate base64 video tracks to temporary file
-    let i = 0
-
+    i = 0
     for (const track of videoTracks) {
+      if (!track) { continue }
       const videoFilePath = path.join(tempDir, `video${++i}.mp4`);
 
       await decodeBase64ToFile(addBase64HeaderToMp4(track), videoFilePath);
@@ -67,7 +73,6 @@ export const concatenateVideosWithAudio = async ({
     // console.log("concatenating videos (without audio)..")
     const tempFilePath = await concatenateVideos({
       videos: videoFilePaths,
-
     })
     // console.log("concatenated silent shots to: ", tempFilePath)
     
@@ -75,7 +80,7 @@ export const concatenateVideosWithAudio = async ({
 
     // Add audio to the concatenated video file
     await new Promise<string>((resolve, reject) => {
-      ffmpeg()
+      let cmd = ffmpeg()
         // Set the audio to the original volume (could be adjusted using a parameter)
         // .audioFilters([
         //   { filter: "volume", options: 1.0 }, // we can have multiple filters, but we only need one
@@ -87,11 +92,20 @@ export const concatenateVideosWithAudio = async ({
         // // The `-shortest` flag might cut the video, so it's commented out here
         // .outputOptions("-shortest")
 
+        .addInput(tempFilePath)
+
+      if (audioTracks.length) {
+        cmd = cmd
         // tells ffmpeg we want to overwrite the audio
         .addOptions(['-map 0:v', '-map 1:a', '-c:v copy'])
+      }
 
-        .addInput(tempFilePath)
-        .addInput(audioFilePath)
+      // adding an audio track is optional
+      for (const track of audioTracks) {
+        cmd = cmd.addInput(track)
+      }
+
+      cmd = cmd
         .on("error", reject)
         .on("end", () => { resolve(finalOutputFilePath) })
         .saveToFile(finalOutputFilePath)
@@ -104,8 +118,7 @@ export const concatenateVideosWithAudio = async ({
   } finally {
     if (!keepTemporaryFiles) {
       // Cleanup temporary files - you could choose to do this or leave it to the user
-      await Promise.all(videoFilePaths.map(filePath => fsPromises.unlink(filePath)));
-      await fsPromises.unlink(audioFilePath);
+      await Promise.all([...videoFilePaths, ...audioFilePaths].map(p => fs.unlink(p)));
     }
   }
 };
