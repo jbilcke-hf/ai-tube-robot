@@ -540,3 +540,10 @@ export type SDXLModel = {
   "new"?: boolean
   is_pivotal?: boolean
 }
+
+export type GeneratedScene = {
+  text: string // plain text, trimmed
+  audio: string // in base64
+  filePath: string // path to a tmp file (ideally)
+}
+

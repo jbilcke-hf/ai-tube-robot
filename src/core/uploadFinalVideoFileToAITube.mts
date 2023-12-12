@@ -33,7 +33,7 @@ export async function uploadFinalVideoFileToAITube({
       path: uploadFilePath,
       content: blob as any,
     },
-    commitTitle: "Add new MP4 video file",
+    commitTitle: "[robot] Add new MP4 video file",
   })
 
   return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp4`

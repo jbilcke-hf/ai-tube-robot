@@ -33,7 +33,7 @@ export async function updateChannelIndex(
       path: `channels.json`,
       content: blob as any,
     },
-    commitTitle: `Update channel index (channels.json)`,
+    commitTitle: `[robot] Update channel index (channels.json)`,
   })
 
   return true

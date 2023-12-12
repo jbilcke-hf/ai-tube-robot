@@ -30,7 +30,7 @@ export async function updateVideoIndex({
       path: `${status}.json`,
       content: blob as any,
     },
-    commitTitle: `Update video index (${status}.json)`,
+    commitTitle: `[robot] Update video index (${status}.json)`,
   })
 
   return true

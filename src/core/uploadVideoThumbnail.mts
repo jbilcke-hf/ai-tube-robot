@@ -41,7 +41,7 @@ export async function uploadVideoThumbnail({
       path: uploadFilePath,
       content: blob as any,
     },
-    commitTitle: "Upload new video thumbnail",
+    commitTitle: "[robot] Upload new video thumbnail",
   })
 
   return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.webp`

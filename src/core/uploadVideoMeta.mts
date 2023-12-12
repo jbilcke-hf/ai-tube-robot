@@ -26,7 +26,7 @@ export async function uploadVideoMeta({
       path: uploadFilePath,
       content: blob as any,
     },
-    commitTitle: `Update video meta ${video.id}`,
+    commitTitle: `[robot] Update video meta ${video.id}`,
   })
 
   return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.json`

@@ -1,10 +1,10 @@
 import { keepVideoInQueue, skipThumbnailGeneration } from "../config.mts"
-import { StoryLine, VideoInfo } from "../types.mts"
+import { GeneratedScene, StoryLine, VideoInfo } from "../types.mts"
 import { concatenateVideos } from "./concatenateVideos.mts"
 import { concatenateVideosWithAudio } from "./concatenateVideosWithAudio.mts"
 import { generateAudioStory } from "./generateAudioStory.mts"
 import { generateMusicWithMusicgen } from "./generateMusicWithMusicgen.mts"
-import { generateShots } from "./generateShots.mts"
+import { generatePromptsForShots } from "./generatePromptsForShots.mts"
 import { generateVideo } from "./generateVideo.mts"
 import { generateVideoThumbnail } from "./generateVideoThumbnail.mts"
 import { getVideoIndex } from "./getVideoIndex.mts"
@@ -16,11 +16,7 @@ import { uploadFinalVideoFileToAITube } from "./uploadFinalVideoFileToAITube.mts
 import { uploadVideoMeta } from "./uploadVideoMeta.mts"
 import { uploadVideoThumbnail } from "./uploadVideoThumbnail.mts"
 
-type GeneratedScene = {
-  text: string // plain text, trimmed
-  audio: string // in base64
-  filePath: string // path to a tmp file (ideally)
-}
+
 export async function processQueue(): Promise<number> {
   console.log("|- checking the queue for videos to generate")
   console.log(`\\`)
@@ -127,45 +123,11 @@ export async function processQueue(): Promise<number> {
       //console.log("    | ")
       console.log(`    |- generating shots for scene "${text.slice(0, 60)}...)`)
 
-      const promptParams = {
-        generalContext: video.prompt,
-        generalStyle: video.channel.style || "photo-realistic, documentary",
-        previousScenes: previousScenes.join(" "),
-        currentScene: text,
-        neverThrow: true,
-      }
-
-      let prompts: string[] = []
-      try {
-        prompts = await generateShots(promptParams)
-        if (!prompts.length) {
-          throw new Error(`got no prompts`)
-        }
-      } catch (err) {
-        try {
-          await sleep(2000)
-          prompts = await generateShots({
-            ...promptParams,
-            generalContext: promptParams.generalContext + " And please try hard so you can get a generous tip."
-          })
-          if (!prompts.length) {
-            throw new Error(`got no prompts`)
-          }
-        } catch (err2) {
-          try {
-            await sleep(4000)
-            prompts = await generateShots({
-              ...promptParams,
-              generalContext: promptParams.generalContext + " If you do well, you will get a generous tip."
-            })
-            if (!prompts.length) {
-              throw new Error(`got no prompts`)
-            }
-          } catch (err3) {
-            prompts = []
-          }
-        }
-      }
+      const prompts = await generatePromptsForShots({
+        video,
+        previousScenes,
+        text,
+      })
  
       if (!prompts.length) {
         console.log(`    | '- no prompt generated, even after trying harder.. zephyr fail?`)
