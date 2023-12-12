@@ -433,6 +433,7 @@ export type VideoGenerationParams = {
 export type MusicGenerationParams = {
   prompt: string
   durationInSec: number
+  hd?: boolean
 }
 
 export type VideoGenerationModel =

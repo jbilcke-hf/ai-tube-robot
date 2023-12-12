@@ -11,12 +11,12 @@ import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "./writeBase64ToFile.mts";
 import { getMediaDuration } from "./getMediaDuration.mts";
 
-type ConcatenateVideoWithAudioOptions = {
+type ConcatenateVideoAndMergeAudioOptions = {
   output?: string;
-  audioTrack?: string; // base64
-  audioFilePath?: string; // path
+  audioTracks?: string[]; // base64
+  audioFilePaths?: string[]; // path
   videoTracks?: string[]; // base64
-  videoFilePaths?: string[];// path
+  videoFilePaths?: string[]; // path
 };
 
 export type ConcatenateVideoAndMergeAudioOutput = {
@@ -24,26 +24,33 @@ export type ConcatenateVideoAndMergeAudioOutput = {
   durationInSec: number;
 }
 
-export const concatenateVideosWithAudio = async ({
+// note: the audio tracks will be fused together, as in "mixed"
+// this return a path to the file
+export const concatenateVideosAndMergeAudio = async ({
   output,
-  audioTrack = "",
-  audioFilePath = "",
+  audioTracks = [],
+  audioFilePaths = [],
   videoTracks = [],
-  videoFilePaths = [],
-}: ConcatenateVideoWithAudioOptions): Promise<ConcatenateVideoAndMergeAudioOutput> => {
+  videoFilePaths = []
+}: ConcatenateVideoAndMergeAudioOptions): Promise<ConcatenateVideoAndMergeAudioOutput> => {
 
   try {
     // Prepare temporary directories
     const tempDir = path.join(os.tmpdir(), uuidv4());
     await fs.mkdir(tempDir);
 
-    if (audioTrack) {
-      audioFilePath = path.join(tempDir, `audio.wav`);
-      await writeBase64ToFile(addBase64HeaderToWav(audioTrack), audioFilePath);
+    let i = 0
+    for (const track of audioTracks) {
+      if (!track) { continue }
+      const audioFilePath = path.join(tempDir, `audio${++i}.wav`);
+      await writeBase64ToFile(addBase64HeaderToWav(track), audioFilePath);
+      audioFilePaths.push(audioFilePath);
     }
+    audioFilePaths = audioFilePaths.filter((audio) => existsSync(audio))
+
 
     // Decode and concatenate base64 video tracks to temporary file
-    let i = 0
+    i = 0
     for (const track of videoTracks) {
       if (!track) { continue }
       const videoFilePath = path.join(tempDir, `video${++i}.mp4`);
@@ -52,7 +59,6 @@ export const concatenateVideosWithAudio = async ({
 
       videoFilePaths.push(videoFilePath);
     }
-
     videoFilePaths = videoFilePaths.filter((video) => existsSync(video))
 
     // The final output file path
@@ -79,27 +85,28 @@ export const concatenateVideosWithAudio = async ({
 
     // Add audio to the concatenated video file
     const promise = new Promise<ConcatenateVideoAndMergeAudioOutput>((resolve, reject) => {
-      let cmd: FfmpegCommand = ffmpeg()
-        // Set the audio to the original volume (could be adjusted using a parameter)
-        // .audioFilters([
-        //   { filter: "volume", options: 1.0 }, // we can have multiple filters, but we only need one
-        // ])
-        // .outputOptions("-c:v copy") // Use video copy codec
-        // .outputOptions("-c:a aac") // Use audio codec
-        // // Map the video and audio streams
-        // .outputOptions(["-map", "0:v:0", "-map", "1:a:0"])
-        // // The `-shortest` flag might cut the video, so it's commented out here
-        // .outputOptions("-shortest")
+      let cmd = ffmpeg().addInput(tempFilePath.filepath).outputOptions("-c:v copy");
 
-        .addInput(tempFilePath.filepath)
-
-      if (audioTrack) {
-        cmd = cmd
-        .addInput(audioTrack)
-        // tells ffmpeg we want to overwrite the audio
-        .addOptions(['-map 0:v', '-map 1:a', '-c:v copy'])
+      for (const audioFilePath of audioFilePaths) {
+        cmd = cmd.addInput(audioFilePath);
       }
-
+    
+      if (audioFilePaths.length) {
+        // Mix all audio tracks (if there are any) into a single stereo stream
+        const mixFilter = audioFilePaths.map((_, index) => `[${index + 1}:a]`).join('') + `amix=inputs=${audioFilePaths.length}:duration=first[outa]`;
+        cmd = cmd
+          .complexFilter(mixFilter)
+          .outputOptions([
+            "-map", "0:v:0", // Maps the video stream from the first input (index 0) as the output video stream
+            "-map", "[outa]", // Maps the labeled audio output from the complex filter (mixed audio) as the output audio stream
+            "-c:a aac", // Specifies the audio codec to be AAC (Advanced Audio Coding)
+            "-shortest" // Ensures the output file's duration equals the shortest input stream's duration
+          ]);
+      } else {
+        // If there are no audio tracks, just map the video
+        cmd = cmd.outputOptions(["-map", "0:v:0"]);
+      }    
+    
       cmd = cmd
         .on("error", reject)
         .on('end', async () => {
@@ -110,18 +117,18 @@ export const concatenateVideosWithAudio = async ({
             reject(err);
           }
         })
-        .saveToFile(finalOutputFilePath)
+        .saveToFile(finalOutputFilePath);
     });
 
-    const result = await promise
-    
+    const result = await promise;
+  
     return result
   } catch (error) {
     throw new Error(`Failed to assemble video: ${(error as Error).message}`);
   } finally {
     if (!keepTemporaryFiles) {
       // Cleanup temporary files - you could choose to do this or leave it to the user
-      await Promise.all([...videoFilePaths, audioFilePath].map(p => fs.unlink(p)));
+      await Promise.all([...videoFilePaths, ...audioFilePaths].map(p => fs.unlink(p)));
     }
   }
 };

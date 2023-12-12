@@ -3,24 +3,29 @@ import os from "node:os";
 import path from "node:path";
 
 import { v4 as uuidv4 } from "uuid";
-import ffmpeg from "fluent-ffmpeg";
+import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 
-import { getVideoDuration } from "./getVideoDuration.mts";
+import { getMediaDuration } from "./getMediaDuration.mts";
+
+export type ConcatenateVideoOutput = {
+  filepath: string;
+  durationInSec: number;
+}
 
 export async function concatenateVideos({
   output,
-  videos,
+  videoFilePaths = [],
 }: {
   output?: string;
-  videos: string[];
-}): Promise<{ filepath: string; durationInSec: number }> {
-  if (!Array.isArray(videos)) {
+
+  // those are videos PATHs, not base64 strings!
+  videoFilePaths: string[];
+}): Promise<ConcatenateVideoOutput> {
+  if (!Array.isArray(videoFilePaths)) {
     throw new Error("Videos must be provided in an array");
   }
 
-  if (!videos.every((video) => existsSync(video))) {
-    throw new Error("All videos must exist");
-  }
+  videoFilePaths = videoFilePaths.filter((videoPath) => existsSync(videoPath))
 
   // Create a temporary working directory
   const tempDir = path.join(os.tmpdir(), uuidv4());
@@ -32,17 +37,19 @@ export async function concatenateVideos({
     throw new Error("Failed to generate a valid temporary file path");
   }
 
-  const ffmpegCommand = ffmpeg();
+  let cmd: FfmpegCommand = ffmpeg();
 
-  videos.forEach((video) => ffmpegCommand.addInput(video));
+  videoFilePaths.forEach((video) => {
+    cmd = cmd.addInput(video)
+  })
 
   return new Promise<{ filepath: string; durationInSec: number }>(
     (resolve, reject) => {
-      ffmpegCommand
+      cmd
         .on('error', reject)
         .on('end', async () => {
           try {
-            const durationInSec = await getVideoDuration(filePath);
+            const durationInSec = await getMediaDuration(filePath);
             resolve({ filepath: filePath, durationInSec });
           } catch (err) {
             reject(err);

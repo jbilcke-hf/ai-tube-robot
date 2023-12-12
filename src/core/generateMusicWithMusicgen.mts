@@ -11,6 +11,7 @@ const accessToken = `${process.env.AI_TUBE_MODEL_MUSICGEN_SECRET_TOKEN || ""}`
 export const generateMusicWithMusicgen = async ({
   prompt,
   durationInSec,
+  hd
 }: MusicGenerationParams): Promise<string> => {
 
   try {
@@ -27,7 +28,7 @@ export const generateMusicWithMusicgen = async ({
       // can be one of Default or MultiBand_Diffusion
       // since speed isn't an issue for AI Tube,
       // we can afford to use the MultiBand Decoder
-      "MultiBand_Diffusion", // "Default",
+      hd ? "MultiBand_Diffusion" : "Default",
 
       prompt, // string  in 'Input Text' Textbox component
       null, 	// blob in 'File' Audio component		

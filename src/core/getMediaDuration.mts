@@ -1,6 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
 
-export async function getVideoDuration(fileName: string): Promise<number> {
+export async function getMediaDuration(fileName: string): Promise<number> {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(fileName, (err, metadata) => {
       if (err) reject(err);
