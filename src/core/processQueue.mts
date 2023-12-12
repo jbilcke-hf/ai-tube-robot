@@ -1,4 +1,4 @@
-import { keepVideoInQueue } from "../config.mts"
+import { keepVideoInQueue, skipThumbnailGeneration } from "../config.mts"
 import { StoryLine, VideoInfo } from "../types.mts"
 import { concatenateVideos } from "./concatenateVideos.mts"
 import { concatenateVideosWithAudio } from "./concatenateVideosWithAudio.mts"
@@ -6,13 +6,15 @@ import { generateAudioStory } from "./generateAudioStory.mts"
 import { generateMusicWithMusicgen } from "./generateMusicWithMusicgen.mts"
 import { generateShots } from "./generateShots.mts"
 import { generateVideo } from "./generateVideo.mts"
+import { generateVideoThumbnail } from "./generateVideoThumbnail.mts"
+import { getVideoIndex } from "./getVideoIndex.mts"
 
-import { getIndex } from "./getIndex.mts"
 import { parseVoiceModelName } from "./parseVoiceModelName.mts"
 import { sleep } from "./sleep.mts"
-import { updateIndex } from "./updateIndex.mts"
+import { updateVideoIndex } from "./updateVideoIndex.mts"
 import { uploadFinalVideoFileToAITube } from "./uploadFinalVideoFileToAITube.mts"
 import { uploadVideoMeta } from "./uploadVideoMeta.mts"
+import { uploadVideoThumbnail } from "./uploadVideoThumbnail.mts"
 
 type GeneratedScene = {
   text: string // plain text, trimmed
@@ -23,8 +25,8 @@ export async function processQueue(): Promise<number> {
   console.log("|- checking the queue for videos to generate")
   console.log(`\\`)
   
-  const queuedVideos = await getIndex({ status: "queued", renewCache: true })
-  const publishedVideos = await getIndex({ status: "published", renewCache: true })
+  const queuedVideos = await getVideoIndex({ status: "queued", renewCache: true })
+  const publishedVideos = await getVideoIndex({ status: "published", renewCache: true })
 
   const videoEntries = Object.entries(queuedVideos) as [string, VideoInfo][]
 
@@ -37,19 +39,37 @@ export async function processQueue(): Promise<number> {
     console.log(` |- processing video ${id}: "${video.label}"`)
     console.log(` \\`)
 
+    // let scenes = []
+    if (!skipThumbnailGeneration) {
+      console.log(`  |- generating a catchy thumbnail..`)
+
+      const thumbnailBase64 = await generateVideoThumbnail({ video })
+
+      console.log(`  |- uploading the catchy thumbnail..`)
+
+      video.thumbnailUrl = await uploadVideoThumbnail({ video, thumbnailBase64 })
+    }
+
+    console.log(`  |- setting video state to "generating"..`)
+  
     video.status = "generating"
+
+    await sleep(500)
+
+    console.log(`  |- pushing new video metadata..`)
+
     await uploadVideoMeta({ video })
+
  
     // the use case for doing this is debugging
     if (!keepVideoInQueue) {
       delete queuedVideos[video.id]
-      await updateIndex({ status: "queued", videos: queuedVideos })
+      await updateVideoIndex({ status: "queued", videos: queuedVideos })
     }
 
     // let scenes = []
-    console.log(`  |- generating audio commentary (should take about 50 seconds)`)
+    console.log(`  |- generating audio commentary..`)
 
-  
     // first we ask the API to generate all the audio and story
     // this should take about 30 to 60 seconds
     let scenes: StoryLine[] = []
@@ -232,7 +252,7 @@ export async function processQueue(): Promise<number> {
 
       if (queuedVideos[video.id]) {
         delete queuedVideos[video.id]
-        await updateIndex({ status: "queued", videos: queuedVideos })
+        await updateVideoIndex({ status: "queued", videos: queuedVideos })
         await sleep(1000)
       }
 
@@ -306,14 +326,14 @@ export async function processQueue(): Promise<number> {
     await uploadVideoMeta({ video })
 
     // TODO: we should put this index in the database, as it might grow to 10k and more
-    await updateIndex({ status: "published", videos: publishedVideos })
+    await updateVideoIndex({ status: "published", videos: publishedVideos })
 
     // everything looks fine! let's mark the video as finished
     if (!keepVideoInQueue) {
       if (queuedVideos[video.id]) {
         delete queuedVideos[video.id]
         await sleep(1000)
-        await updateIndex({ status: "queued", videos: queuedVideos })
+        await updateVideoIndex({ status: "queued", videos: queuedVideos })
       }
     }
 

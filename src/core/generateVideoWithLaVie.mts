@@ -5,11 +5,13 @@ import { generateSeed } from "./generateSeed.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { VideoGenerationParams } from "../types.mts"
 import { adminApiKey } from "../config.mts"
+import { getPositivePrompt } from "./promptUtilities.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
 
 export async function generateVideoWithLaVie({
   prompt = "",
+  style = "",
   // width = 512,
   // height = 320,
   // framesPerSecond = 8,
@@ -19,6 +21,11 @@ export async function generateVideoWithLaVie({
 
   const app = await client("jbilcke-hf/ai-tube-model-lavie", { hf_token: adminApiKey as any });
 
+  const positivePrompt = getPositivePrompt([
+    style,
+    prompt
+  ].map(x => x.trim()).filter(x => x).join(", "))
+  
   /*
   console.log(`SEND TO ${gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict"}:`, [
     // accessToken,
@@ -35,7 +42,7 @@ export async function generateVideoWithLaVie({
 
   const res = await app.predict("/run", [
     accessToken,
-    prompt,
+    positivePrompt,
     // generateSeed(),
     // 50, // ddim_steps,
     // 7, // cfg,

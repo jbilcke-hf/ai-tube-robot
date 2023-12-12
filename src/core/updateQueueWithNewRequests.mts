@@ -3,8 +3,8 @@ import { adminApiKey } from "../config.mts"
 import { getChannels } from "./getChannels.mts"
 import { ChannelInfo, UpdateQueueRequest, VideoInfo } from "../types.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
-import { getIndex } from "./getIndex.mts"
-import { updateIndex } from "./updateIndex.mts"
+import { getVideoIndex } from "./getVideoIndex.mts"
+import { updateVideoIndex } from "./updateVideoIndex.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
 
 export async function updateQueueWithNewRequests(apiKey: string, optionalChannel?: ChannelInfo): Promise<number> {
@@ -33,7 +33,7 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
     }
   }
 
-  const videos = await getIndex({ status: "queued", renewCache: true })
+  const videos = await getVideoIndex({ status: "queued", renewCache: true })
 
   console.log(`sync: got ${channels.length} channel(s) to update`)
   for (const channel of channels) {
@@ -82,7 +82,7 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
   // finally we update the index
   // now obviously this is only safe to do if there is
   // only one sync function and process doing the index commits at a time!
-  await updateIndex({ status: "queued", videos })
+  await updateVideoIndex({ status: "queued", videos })
 
   return 0
 }

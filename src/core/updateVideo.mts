@@ -1,6 +1,6 @@
 import { VideoInfo } from "../types.mts"
-import { getIndex } from "./getIndex.mts"
-import { updateIndex } from "./updateIndex.mts"
+import { getVideoIndex } from "./getVideoIndex.mts"
+import { updateVideoIndex } from "./updateVideoIndex.mts"
 
 export async function updateVideo(oldVideo: VideoInfo, newValues: VideoInfo): Promise<VideoInfo> {
   // touching the index is touchy, so we perform some sanity checks
@@ -22,25 +22,25 @@ export async function updateVideo(oldVideo: VideoInfo, newValues: VideoInfo): Pr
     ...oldVideo,
     ...newValues
   }
-  const newVideoIndex = await getIndex({
+  const newVideoIndex = await getVideoIndex({
     status: video.status,
     renewCache: true,
   })
 
   newVideoIndex[video.id] = video
 
-  await updateIndex({ status: video.status, videos: newVideoIndex })
+  await updateVideoIndex({ status: video.status, videos: newVideoIndex })
 
   // if status changed, we remove the video from the previous index
   if (oldVideo.status !== newValues.status) {
-    const oldVideoIndex = await getIndex({
+    const oldVideoIndex = await getVideoIndex({
       status: oldVideo.status,
       renewCache: true,
     })
   
     delete oldVideoIndex[video.id]
   
-    await updateIndex({ status: oldVideo.status, videos: oldVideoIndex })
+    await updateVideoIndex({ status: oldVideo.status, videos: oldVideoIndex })
   }
 
   return video

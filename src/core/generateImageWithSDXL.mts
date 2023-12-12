@@ -6,20 +6,18 @@ import { adminApiKey } from "../config.mts"
 export async function generateImageSDXL(options: {
   positivePrompt: string;
   negativePrompt?: string;
-  trigger?: string;
   seed?: number;
   width?: number;
   height?: number;
   nbSteps?: number;
   guidanceScale?: number;
 
-  loraModelName?: string;
+  lora?: string;
 }): Promise<string> {
 
   const positivePrompt = [
     "beautiful",
     // "intricate details",
-    options?.trigger || "cinematic-2",
     options?.positivePrompt || "",
     "award winning",
     "high resolution"
@@ -27,14 +25,15 @@ export async function generateImageSDXL(options: {
 
   // console.log("positivePrompt:", positivePrompt)
 
-  const huggingfaceInferenceApiModel = options?.loraModelName || "jbilcke-hf/sdxl-cinematic-2"
+  const huggingfaceInferenceApiModel = options?.lora || "stabilityai/stable-diffusion-xl-base-1.0" // "jbilcke-hf/sdxl-cinematic-2"
 
   const url = `https://api-inference.huggingface.co/models/${huggingfaceInferenceApiModel}`
   
   const parameters = {
     num_inference_steps: getValidNumber(options.nbSteps, 1, 100, 50),
+    negative_prompt: options?.negativePrompt || "",
     guidance_scale: getValidNumber(options.guidanceScale, 0, 20, 8),
-    seed: options?.seed || generateSeed(),
+    // seed: options?.seed || generateSeed(),
     width: getValidNumber(options.width, 256, 1024, 1024),
     height: getValidNumber(options.height, 256, 1024, 1024),
   }

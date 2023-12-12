@@ -42,12 +42,22 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 // but you can set them to true on your own machine
 
 // if set to true, a video that has already been published will be re-generated
-// this is probably the only variable you will want to switch to true during debugging
+// be careful if you switch it to true!
+// the usecase for doing so is that if you want to upgrade ALL the videos of the
+// platform to a specific format or feature
+//
+// ATTENTION! if you enable it for a mass upgrade, you will want to set:
+// skipThumbnailGeneration = true
+// to avoid re-generating all the thumbnails (well, unless you WANT to regenerate them)
 export const enableRepublishing = false
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development
 export const keepVideoInQueue = false
+
+// to disable thumbnails - in production, leave it to false!
+// but locally we want to disable this (if working)
+export const skipThumbnailGeneration = false
 
 // set to true to not delete the temporary files
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files
@@ -64,6 +74,13 @@ export const priorityAccounts = [
 ]
 
 export const skipLowPriorityAccounts = true
+
+// users whose content is banned, but their Hugging Face account has not been disabled
+// as the platform grows in popularity, it may be necessary to filter out bad actors
+// trying to hijack the public "latest content" page
+export const bannedAccounts = [
+  // good news! nobody is there.. yet.
+]
 
 // ------------------------------------------------------------------------------------
 

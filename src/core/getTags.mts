@@ -1,4 +1,4 @@
-import { getIndex } from "./getIndex.mts"
+import { getVideoIndex } from "./getVideoIndex.mts"
 
 export async function getTags({
   renewCache = true,
@@ -11,7 +11,7 @@ export async function getTags({
   neverThrow: true,
 }): Promise<string[]> {
   try {
-    const published = Object.values(await getIndex({ status: "published", renewCache }))
+    const published = Object.values(await getVideoIndex({ status: "published", renewCache }))
 
     const tags: Record<string, number> = {}
     for (const video of published) {

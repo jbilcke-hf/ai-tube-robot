@@ -1,36 +1,54 @@
 import { enableRepublishing, priorityAccounts, skipLowPriorityAccounts } from "../config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./getChannels.mts"
-import { getIndex } from "./getIndex.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
 import { isHighPriorityChannel } from "./isHighPriorityChannel.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { sleep } from "./sleep.mts"
-import { updateIndex } from "./updateIndex.mts"
+import { updateVideoIndex } from "./updateVideoIndex.mts"
 import { updateQueueWithNewRequests } from "./updateQueueWithNewRequests.mts"
+import { isOwnedByBadActor } from "./isOwnedByBadActor.mts"
+import { getVideoIndex } from "./getVideoIndex.mts"
+import { updateChannelIndex } from "./updateChannelIndex.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
   console.log("processChannels(): loading queue..")
   
-  const queuedVideos = await getIndex({ status: "queued", renewCache: true })
-  const publishedVideos = await getIndex({ status: "published", renewCache: true })
-  const generatingVideos = await getIndex({ status: "generating", renewCache: true })
+  const queuedVideos = await getVideoIndex({ status: "queued", renewCache: true })
+  const publishedVideos = await getVideoIndex({ status: "published", renewCache: true })
+  const generatingVideos = await getVideoIndex({ status: "generating", renewCache: true })
 
   await sleep(2000)
 
   console.log("processChannels(): checking the Hugging Face platform for AI Tube channels")
   
   let channels = await getChannels({})
+  const nbTotalChannels = channels.length
 
   console.log(`processChannels(): ${channels.length} public channels identified`)
+
+  // only keep channels which are NOT owned by bad actors
+  channels = channels.filter(channel => !isOwnedByBadActor(channel))
+  const nbBannedChannels = nbTotalChannels - channels.length
+
+  console.log(`processChannels(): ${
+    channels.length
+  } channels are legit, while ${
+    nbBannedChannels
+  } are compromised`)
+
+
+  console.log(`processChannels(): updating the channel index..`)
+
+  // we update the channel index
+  await updateChannelIndex(channels)
+
+  console.log(`processChannels(): channel index updated!`)
 
   if (skipLowPriorityAccounts) {
     console.log("processChannels(): skipLowPriorityAccounts is toggled ON")
     channels = channels.filter(channel => isHighPriorityChannel(channel))
-    console.log("skipLowPriorityAccounts(): we are only keeping those channels:", {
-      channels
-    })
   } else {
     // put high-priority accounts (developers, admins, VIPs etc) at the top
     channels.sort((a, b) => {
@@ -105,8 +123,8 @@ export async function processChannels(): Promise<number> {
     // finally we update the index
     // now obviously this is only safe to do if there is
     // only one sync function and process doing the index commits at a time!
-    await updateIndex({ status: "queued", videos: queuedVideos })
-    // await updateIndex({ status: "queued", videos: queuedVideos })
+    await updateVideoIndex({ status: "queued", videos: queuedVideos })
+    // await updateVideoIndex({ status: "queued", videos: queuedVideos })
   }
 
   return nbNewlyEnqueued

@@ -310,6 +310,22 @@ export type VideoRequest = {
   channel: ChannelInfo
 }
 
+
+
+// a lightweight video index entry, where we only
+// keep the most basic info such as id, label and tags
+// this will help reduce the size of the index
+export type VideoIndexEntry = {
+  /**
+   * UUID (v4)
+   */
+  id: string
+
+  label: string
+
+  tags: string[]
+}
+
 export type VideoInfo = {
   /**
    * UUID (v4)
@@ -399,6 +415,13 @@ export type VideoInfo = {
    * The channel
    */
   channel: ChannelInfo
+
+  /**
+   * Generation logs
+   * 
+   * We only keep those 
+   */
+  logs?: string
 }
 
 export type VideoGenerationParams = {

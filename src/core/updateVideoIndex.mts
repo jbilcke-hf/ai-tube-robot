@@ -5,7 +5,7 @@ import { VideoInfo, VideoStatus } from "../types.mts"
 import { uploadFile } from "@huggingface/hub"
 import { adminCredentials, adminUsername } from "../config.mts"
 
-export async function updateIndex({
+export async function updateVideoIndex({
   status,
   videos
 }: {
@@ -14,8 +14,8 @@ export async function updateIndex({
 }): Promise<boolean> {
   // touching the index is touchy, so we perform some sanity checks
   if (
-    typeof videos === "undefined" &&
-    typeof videos !== "object" &&
+    typeof videos === "undefined" ||
+    typeof videos !== "object" ||
      Array.isArray(videos) ||
      videos === null) {
     throw new Error("videos param is not an object, admin repair needed")
@@ -30,7 +30,7 @@ export async function updateIndex({
       path: `${status}.json`,
       content: blob as any,
     },
-    commitTitle: `Update index file ${status}.json`,
+    commitTitle: `Update video index (${status}.json)`,
   })
 
   return true

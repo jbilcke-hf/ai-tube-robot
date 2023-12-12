@@ -5,7 +5,11 @@ import { Credentials, downloadFile, uploadFile, whoAmI } from "@huggingface/hub"
 import { VideoInfo, VideoStatus } from "../types.mts"
 import { adminCredentials, adminUsername } from "../config.mts"
 
-export async function getIndexLegacy({
+// this function get an index using the huggingface API
+// it is not very useful for us as plaintext file downloads 
+// can also be done with a simple fetch and HTTP GET,
+// but this could be useful if we want to download index from private datasets
+export async function getPrivateVideoIndex({
   status,
   renewCache,
 }: {

@@ -4,8 +4,8 @@ import { VideoGenerationParams } from "../types.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { generateImageSDXL } from "./generateImageWithSDXL.mts"
 import { generateSeed } from "./generateSeed.mts"
-import { getSDXLModel } from "./getSDXLModel.mts"
 import { adminApiKey } from "../config.mts"
+import { getNegativePrompt, getPositivePrompt } from "./promptUtilities.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_SVD_SECRET_TOKEN || ""}`
 
@@ -23,38 +23,20 @@ export const generateVideoWithSVD = async ({
   const videoSeed = generateSeed()
   const imageSeed = generateSeed()
 
-  // for jbilcke-hf/sdxl-cinematic-2 it is "cinematic-2"
-  let triggerWord = "cinematic-2"
-  let huggingFaceLora = "jbilcke-hf/sdxl-cinematic-2"
-  
-  lora = `${lora || ""}`.trim()
-  style = `${style || ""}`.trim()
+  const positivePrompt = getPositivePrompt([
+    style,
+    prompt
+  ].map(x => x.trim()).filter(x => x).join(", "))
 
-  if (lora) {
-    huggingFaceLora = lora
-    if (style) {
-      triggerWord = style
-    } else {
-      try {
-        const model = await getSDXLModel(lora)
-        triggerWord = model.trigger_word
-      } catch (err) {
-        console.error(`user tried to use lora model ${lora} without a style/trigger parameter, but we couldn't find it ourselves`)
-        triggerWord = ""
-      }
-    }
-  }
-  
-
+  const negativePrompt = getNegativePrompt("")
   try {
     console.log(`calling SDXL..`)
 
     // TODO: generate a SDXL image using a lora!
     const image = await generateImageSDXL({
-      loraModelName: huggingFaceLora,
-      positivePrompt: prompt,
-      negativePrompt: "",
-      trigger: triggerWord,
+      lora,
+      positivePrompt,
+      negativePrompt,
       seed: imageSeed,
       width: 1024,
       height: 576, // <-- important, to improve alignment with SVD

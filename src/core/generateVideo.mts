@@ -8,15 +8,18 @@ import { generateVideoWithLaVie } from "./generateVideoWithLaVie.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithSVD } from "./generateVideoWithSVD.mts"
 import { defaultVideoModel } from "../config.mts"
+import { getLoraStyle } from "./getLoraStyle.mts"
 
 export async function generateVideo(prompt: string, video: VideoInfo): Promise<string> {
 
+  const { lora, style } = await getLoraStyle(video)
+  
   // let's use what we know works well
   let base64Video = ""
   const modelParams: VideoGenerationParams = {
-    prompt: prompt,
-    lora: video.channel.lora,
-    style: video.channel.style
+    prompt,
+    lora,
+    style,
   }
 
   // let's try to detect the model!

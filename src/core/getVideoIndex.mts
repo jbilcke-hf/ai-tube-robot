@@ -2,7 +2,7 @@
 import { VideoInfo, VideoStatus } from "../types.mts"
 import { adminUsername } from "../config.mts"
 
-export async function getIndex({
+export async function getVideoIndex({
   status,
   renewCache = true,
   neverThrow = true,

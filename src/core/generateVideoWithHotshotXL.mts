@@ -1,6 +1,7 @@
 import { VideoGenerationParams } from "../types.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { generateSeed } from "./generateSeed.mts"
+import { getLoraStyle } from "./getLoraStyle.mts"
 import { getSDXLModel } from "./getSDXLModel.mts"
 
 import { getNegativePrompt, getPositivePrompt } from "./promptUtilities.mts"
@@ -22,32 +23,14 @@ export const generateVideoWithHotshotXL = async ({
   const nbSteps = 70 // when rendering a final video, we want a value like 50 or 70 here
   const size = "672x384" // "768x320"
 
-  // for jbilcke-hf/sdxl-cinematic-2 it is "cinematic-2"
-  let triggerWord = "cinematic-2"
-  let huggingFaceLora = "jbilcke-hf/sdxl-cinematic-2"
-  
-  lora = `${lora || ""}`.trim()
-  style = `${style || ""}`.trim()
-
-  if (lora) {
-    huggingFaceLora = lora
-    if (style) {
-      triggerWord = style
-    } else {
-      try {
-        const model = await getSDXLModel(lora)
-        triggerWord = model.trigger_word
-      } catch (err) {
-        console.error(`user tried to use lora model ${lora} without a style/trigger parameter, but we couldn't find it ourselves`)
-        triggerWord = ""
-      }
-    }
-  }
 
   // pimp the prompt
 
   // we put it at the start, to make sure it is always part of the prompt
-  const positivePrompt = getPositivePrompt(`${triggerWord}, ${prompt}`)
+  const positivePrompt = getPositivePrompt([
+    style,
+    prompt
+  ].map(x => x.trim()).filter(x => x).join(", "))
 
   const negativePrompt = getNegativePrompt(negPrompt)
 
@@ -56,7 +39,7 @@ export const generateVideoWithHotshotXL = async ({
     console.log(`calling HotshotXL API with params:`, {
       positivePrompt,
       negativePrompt,
-      huggingFaceLora,
+      lora,
       size,
       seed,
       nbSteps,
@@ -76,7 +59,7 @@ export const generateVideoWithHotshotXL = async ({
           accessToken,
           positivePrompt,
           negativePrompt,
-          huggingFaceLora,
+          lora,
           size,
           seed,
           nbSteps,
