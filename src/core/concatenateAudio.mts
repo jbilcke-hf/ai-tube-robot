@@ -7,7 +7,7 @@ import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 import { addBase64HeaderToWav } from "./addBase64HeaderToWav.mts";
 import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "./writeBase64ToFile.mts";
-import { getMediaDuration } from "./getMediaDuration.mts";
+import { getMediaInfo } from "./getMediaInfo.mts";
 
 export type ConcatenateAudioOptions = {
   // those are base64 audio strings!
@@ -43,7 +43,7 @@ export async function concatenateAudio({
     const outputFilePath = path.join(tempDir, `audio_0.wav`);
     await writeBase64ToFile(addBase64HeaderToWav(audioTrack), outputFilePath);
 
-    const durationInSec = await getMediaDuration(outputFilePath);
+    const { durationInSec } = await getMediaInfo(outputFilePath);
     return { filepath: outputFilePath, durationInSec };
   }
 
@@ -90,7 +90,7 @@ export async function concatenateAudio({
         .on('error', reject)
         .on('end', async () => {
           try {
-            const durationInSec = await getMediaDuration(outputFilePath);
+            const { durationInSec } = await getMediaInfo(outputFilePath);
             resolve({ filepath: outputFilePath, durationInSec });
           } catch (err) {
             reject(err);

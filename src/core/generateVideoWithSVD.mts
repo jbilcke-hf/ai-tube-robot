@@ -30,7 +30,7 @@ export const generateVideoWithSVD = async ({
 
   const negativePrompt = getNegativePrompt("")
   try {
-    console.log(`calling SDXL..`)
+    // console.log(`calling SDXL..`)
 
     // TODO: generate a SDXL image using a lora!
     const image = await generateImageSDXL({
@@ -45,8 +45,9 @@ export const generateVideoWithSVD = async ({
     })
 
    
-    console.log(`calling SVD..`)
+    // console.log(`calling SVD..`)
 
+    /*
     console.log(`sending POST to api.predict /video with params:`, {
       data: [
         image.slice(0, 80), 	// blob in 'Upload your image' Image component		
@@ -56,12 +57,17 @@ export const generateVideoWithSVD = async ({
         accessToken.slice(0, 3) + "...", // string  in 'Secret Token' Textbox component
       ],
     })
+    */
 
     const res = await app.predict("/run", [
       accessToken, // string  in 'Secret Token' Textbox component
       image, 	// blob in 'Upload your image' Image component		
-      videoSeed, // number (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component		
-      117, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component		
+      videoSeed, // number (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component	
+
+      // tried 117 but it seems a bit too "shaky"
+      // so let's try 90
+      90, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component
+    
       8, // number (numeric value between 5 and 30) in 'Frames per second' Slider component		
     ]) as { data: string[] }
      

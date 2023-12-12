@@ -5,7 +5,7 @@ import path from "node:path";
 import { v4 as uuidv4 } from "uuid";
 import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 
-import { getMediaDuration } from "./getMediaDuration.mts";
+import { getMediaInfo } from "./getMediaInfo.mts";
 
 export type ConcatenateVideoOutput = {
   filepath: string;
@@ -49,7 +49,7 @@ export async function concatenateVideos({
         .on('error', reject)
         .on('end', async () => {
           try {
-            const durationInSec = await getMediaDuration(filePath);
+            const { durationInSec } = await getMediaInfo(filePath);
             resolve({ filepath: filePath, durationInSec });
           } catch (err) {
             reject(err);

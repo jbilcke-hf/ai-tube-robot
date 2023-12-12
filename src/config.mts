@@ -53,11 +53,18 @@ export const enableRepublishing = false
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development
-export const keepVideoInQueue = true
+export const keepVideoInQueue = false
 
 // to disable thumbnails - in production, leave it to false!
 // but locally we want to disable this (if working)
-export const skipThumbnailGeneration = true
+export const skipThumbnailGeneration = false
+
+// set to something like 2 or 1 during debugging!
+// otherwise please pick a large value, such as 40
+export const nbMaxScenes = 45
+
+// same here, pick a large value in production, and a small value to do a quick local test
+export const nbMaxShots = 45
 
 // set to true to not delete the temporary files
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files
@@ -67,12 +74,17 @@ export const skipProcessingChannels = false
 
 export const skipProcessingQueue = false
 
+// if you set it to true, the video won't be uploaded,
+// instead you will see the file path in the console
+export const skipUpload = false
+
 // to avoid waiting for hours to test a new feature (eg. an AI model),
 // we use the priority system to quicky iterate on the videos of core developers
 export const priorityAccounts = [
   "jbilcke-hf"
 ]
 
+// let's keep it to try until we have ironed things out!
 export const skipLowPriorityAccounts = true
 
 // users whose content is banned, but their Hugging Face account has not been disabled

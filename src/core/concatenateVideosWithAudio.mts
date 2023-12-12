@@ -9,14 +9,16 @@ import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts";
 import { concatenateVideos } from "./concatenateVideos.mts";
 import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "./writeBase64ToFile.mts";
-import { getMediaDuration } from "./getMediaDuration.mts";
+import { getMediaInfo } from "./getMediaInfo.mts";
 
 type ConcatenateVideoWithAudioOptions = {
   output?: string;
   audioTrack?: string; // base64
   audioFilePath?: string; // path
   videoTracks?: string[]; // base64
-  videoFilePaths?: string[];// path
+  videoFilePaths?: string[]; // path
+  videoTracksVolume?: number; // Represents the volume level of the original video track
+  audioTrackVolume?: number; // Represents the volume level of the additional audio track
 };
 
 export type ConcatenateVideoAndMergeAudioOutput = {
@@ -30,6 +32,8 @@ export const concatenateVideosWithAudio = async ({
   audioFilePath = "",
   videoTracks = [],
   videoFilePaths = [],
+  videoTracksVolume = 0.5, // (1.0 = 100% volume)
+  audioTrackVolume = 0.5,
 }: ConcatenateVideoWithAudioOptions): Promise<ConcatenateVideoAndMergeAudioOutput> => {
 
   try {
@@ -55,67 +59,91 @@ export const concatenateVideosWithAudio = async ({
 
     videoFilePaths = videoFilePaths.filter((video) => existsSync(video))
 
-    // The final output file path
-    const finalOutputFilePath = output ? output : path.join(tempDir, `${uuidv4()}.mp4`);
-
-    /*
-    console.log("DEBUG:", {
-      tempDir,
-      audioFilePath,
-      audioTrack: audioTrack.slice(0, 40),
-      videoTracks: videoTracks.map(vid => vid.slice(0, 40)),
-      videoFilePaths,
-      finalOutputFilePath
-    })
-    */
-
     // console.log("concatenating videos (without audio)..")
     const tempFilePath = await concatenateVideos({
       videoFilePaths,
     })
-    // console.log("concatenated silent shots to: ", tempFilePath)
-    
-    // console.log("concatenating video + audio..")
 
-    // Add audio to the concatenated video file
-    const promise = new Promise<ConcatenateVideoAndMergeAudioOutput>((resolve, reject) => {
-      let cmd: FfmpegCommand = ffmpeg()
-        // Set the audio to the original volume (could be adjusted using a parameter)
-        // .audioFilters([
-        //   { filter: "volume", options: 1.0 }, // we can have multiple filters, but we only need one
-        // ])
-        // .outputOptions("-c:v copy") // Use video copy codec
-        // .outputOptions("-c:a aac") // Use audio codec
-        // // Map the video and audio streams
-        // .outputOptions(["-map", "0:v:0", "-map", "1:a:0"])
-        // // The `-shortest` flag might cut the video, so it's commented out here
-        // .outputOptions("-shortest")
+    // Check if the concatenated video has audio or not
+    const tempVideoInfo = await getMediaInfo(tempFilePath.filepath);
+    const hasOriginalAudio = tempVideoInfo.hasAudio;
 
-        .addInput(tempFilePath.filepath)
+    const finalOutputFilePath = output || path.join(tempDir, `${uuidv4()}.mp4`);
 
-      if (audioTrack) {
-        cmd = cmd
-        .addInput(audioTrack)
-        // tells ffmpeg we want to overwrite the audio
-        .addOptions(['-map 0:v', '-map 1:a', '-c:v copy'])
+    // Begin ffmpeg command configuration
+    let cmd = ffmpeg();
+
+    // Add silent concatenated video
+    cmd = cmd.addInput(tempFilePath.filepath);
+ 
+    // If additional audio is provided, add audio to ffmpeg command
+    if (audioFilePath) {
+      cmd = cmd.addInput(audioFilePath);
+      // If the input video already has audio, we will mix it with additional audio
+      if (hasOriginalAudio) {
+        const filterComplex = `
+          [0:a]volume=${videoTracksVolume}[a0];
+          [1:a]volume=${audioTrackVolume}[a1];
+          [a0][a1]amix=inputs=2:duration=shortest[a]
+        `.trim();
+
+        cmd = cmd.outputOptions([
+          '-filter_complex', filterComplex,
+          '-map', '0:v',
+          '-map', '[a]',
+          '-c:v', 'copy',
+          '-c:a', 'aac',
+        ]);
+      } else {
+        // If the input video has no audio, just use the additional audio as is
+        cmd = cmd.outputOptions([
+          '-map', '0:v',
+          '-map', '1:a',
+          '-c:v', 'copy',
+          '-c:a', 'aac',
+        ]);
       }
+    } else {
+      // If no additional audio is provided, simply copy the video stream
+      cmd = cmd.outputOptions([
+        '-c:v', 'copy',
+        hasOriginalAudio ? '-c:a' : '-an', // If original audio exists, copy it; otherwise, indicate no audio
+      ]);
+    }
 
-      cmd = cmd
-        .on("error", reject)
-        .on('end', async () => {
-          try {
-            const durationInSec = await getMediaDuration(finalOutputFilePath);
-            resolve({ filepath: finalOutputFilePath, durationInSec });
-          } catch (err) {
-            reject(err);
-          }
-        })
-        .saveToFile(finalOutputFilePath)
+    /*
+    console.log("DEBUG:", {
+      videoTracksVolume,
+      audioTrackVolume,
+      videoFilePaths,
+      tempFilePath,
+      hasOriginalAudio,
+      // originalAudioVolume,
+      audioFilePath,
+      // additionalAudioVolume,
+      finalOutputFilePath
+     })
+     */
+  
+    // Set up event handlers for ffmpeg processing
+    const promise = new Promise<ConcatenateVideoAndMergeAudioOutput>((resolve, reject) => {
+      cmd.on('error', (err) => {
+        console.error("    Error during ffmpeg processing:", err.message);
+        reject(err);
+      }).on('end', async () => {
+        // When ffmpeg finishes processing, resolve the promise with file info
+        try {
+          const { durationInSec } = await getMediaInfo(finalOutputFilePath);
+          resolve({ filepath: finalOutputFilePath, durationInSec });
+        } catch (err) {
+          reject(err);
+        }
+      }).save(finalOutputFilePath); // Provide the path where to save the file
     });
 
-    const result = await promise
-    
-    return result
+    // Wait for ffmpeg to complete the process
+    const result = await promise;
+    return result;
   } catch (error) {
     throw new Error(`Failed to assemble video: ${(error as Error).message}`);
   } finally {

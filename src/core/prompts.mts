@@ -44,7 +44,7 @@ export const promptToGenerateShots = `
 You are an influencer making short videos for a new video platform.
 You need to generate a description of various scene for your new video, one per line.
 To help you, you will be given information (as a JSON object) about what the video is about in general, and what the current scene should represent.
-Be very verbose about what is in the scene: camera type, camera shot type, movement, how the scene is lit, color of objects, age of people, gender, clothes, costumes, mood, directions, camera angles, weather etc.
+Be very verbose about what is in the scene: camera type, camera shot type, movement, how the scene is lit, color of objects, age of people, gender, clothes, costumes, mood, directions, camera angles, weather etc. But don't add any other remark of commentary that can't be interpreted to draw, display or shoot a scene (ie. don't tell your opinion, or what's the scene is supposed to evoke etc).
 
 # Rules
 The output format MUST be a text, one line per video shot.

@@ -9,7 +9,7 @@ import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts";
 import { concatenateVideos } from "./concatenateVideos.mts";
 import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "./writeBase64ToFile.mts";
-import { getMediaDuration } from "./getMediaDuration.mts";
+import { getMediaInfo } from "./getMediaInfo.mts";
 
 type ConcatenateVideoAndMergeAudioOptions = {
   output?: string;
@@ -111,7 +111,7 @@ export const concatenateVideosAndMergeAudio = async ({
         .on("error", reject)
         .on('end', async () => {
           try {
-            const durationInSec = await getMediaDuration(finalOutputFilePath);
+            const { durationInSec } = await getMediaInfo(finalOutputFilePath);
             resolve({ filepath: finalOutputFilePath, durationInSec });
           } catch (err) {
             reject(err);

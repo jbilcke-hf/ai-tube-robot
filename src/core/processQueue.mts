@@ -1,4 +1,4 @@
-import { keepVideoInQueue, skipThumbnailGeneration } from "../config.mts"
+import { keepVideoInQueue, nbMaxScenes, nbMaxShots, skipThumbnailGeneration, skipUpload } from "../config.mts"
 import { GeneratedScene, StoryLine, VideoInfo } from "../types.mts"
 import { concatenateAudio } from "./concatenateAudio.mts"
 import { concatenateVideos } from "./concatenateVideos.mts"
@@ -54,7 +54,6 @@ export async function processQueue(): Promise<number> {
     await sleep(500)
 
     console.log(`  |- pushing new video metadata..`)
-
     await uploadVideoMeta({ video })
 
  
@@ -110,7 +109,7 @@ export async function processQueue(): Promise<number> {
     // then for each story line, we generate the caption
 
     let previousScenes: GeneratedScene[] = []
-    let nbMaxScenes = 40
+
     let nbScenes = 0
     for (const { text, audio: audioAsBase64 } of scenes) {
       if (!text.length || text.length < 3) {
@@ -140,7 +139,6 @@ export async function processQueue(): Promise<number> {
 
       console.log(`      |`)
 
-      const nbMaxShots = 40
       let nbShots = 0
       
       // this takes a bit of RAM, but not so much (we are only going to buffer a few seconds)
@@ -172,7 +170,7 @@ export async function processQueue(): Promise<number> {
         console.log(`      |`)
 
         if (++nbShots >= nbMaxShots) {
-          console.log("        '-- max number of shot reached")
+          console.log(`        '-- max number of shot reached (${nbMaxShots})`)
           break
         }
       }
@@ -186,6 +184,8 @@ export async function processQueue(): Promise<number> {
       const concatenatedChunk = await concatenateVideosWithAudio({
         audioTrack: videoVoice.muted ? undefined : audioAsBase64, // must a base64 WAV
         videoTracks: microVideoChunksBase64, // must be an array of base64 MP4 videos
+        videoTracksVolume: 0.0,
+        audioTrackVolume: 1.0,
       })
 
       console.log("      '--> generated a video chunk file: ", concatenatedChunk.filepath)
@@ -197,7 +197,7 @@ export async function processQueue(): Promise<number> {
       })
 
       if (++nbScenes >= nbMaxScenes) {
-        console.log("      '- max number of scenes reached")
+        console.log(`      '- max number of scenes reached ${nbMaxScenes}`)
         break
       }
     }
@@ -261,27 +261,38 @@ export async function processQueue(): Promise<number> {
         // note the use of *paths* in the parameters
         audioFilePath: concatenatedMusic.filepath, // must a base64 WAV
         videoFilePaths: [concatenatedVideos.filepath], // must be an array of base64 MP4 videos
+
+        // unless we are muted, the voice will be higher than the music
+        videoTracksVolume: videoVoice.muted ? 1.0 : 0.65,
+        audioTrackVolume: videoVoice.muted ? 0.0 : 0.35,
       })
 
       finalVideoPath = concatenatedVideoWithAudio.filepath
     }
 
-    console.log("  -> uploading file to AI Tube:", finalVideoPath)
 
-    const uploadedVideoUrl = await uploadFinalVideoFileToAITube({
-      video,
-      filePath: finalVideoPath
-    })
+    if (skipUpload) {
+      console.log("  -> development mode, so we skip uploading to AI Tube.")
+      console.log("  -> you can inspect the video here: ", finalVideoPath)
 
-    video.assetUrl = uploadedVideoUrl
-    video.status = "published"
+    } else {
+      console.log("  -> uploading file to AI Tube:", finalVideoPath)
 
-    publishedVideos[video.id] = video
+      const uploadedVideoUrl = await uploadFinalVideoFileToAITube({
+        video,
+        filePath: finalVideoPath
+      })
+      video.assetUrl = uploadedVideoUrl
+      video.status = "published"
+  
+      publishedVideos[video.id] = video
 
-    await uploadVideoMeta({ video })
+      await uploadVideoMeta({ video })
+  
+      // TODO: we should put this index in the database, as it might grow to 10k and more
+      await updateVideoIndex({ status: "published", videos: publishedVideos })  
+    }
 
-    // TODO: we should put this index in the database, as it might grow to 10k and more
-    await updateVideoIndex({ status: "published", videos: publishedVideos })
 
     // everything looks fine! let's mark the video as finished
     if (!keepVideoInQueue) {
