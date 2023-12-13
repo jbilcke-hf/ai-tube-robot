@@ -8,11 +8,12 @@ import { generateVideoWithLaVie } from "./generateVideoWithLaVie.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithSVD } from "./generateVideoWithSVD.mts"
 import { defaultVideoModel } from "../config.mts"
-import { getLoraStyle } from "./getLoraStyle.mts"
+import { getVideoLoraAndStyle } from "./getVideoLoraAndStyle.mts"
 
 export async function generateVideo(prompt: string, video: VideoInfo): Promise<string> {
 
-  const { lora, style } = await getLoraStyle(video)
+  // note: this will inject the video custom style too
+  const { lora, style } = await getVideoLoraAndStyle(video)
   
   // let's use what we know works well
   let base64Video = ""

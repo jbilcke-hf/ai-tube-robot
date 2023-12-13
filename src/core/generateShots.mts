@@ -56,7 +56,7 @@ export async function generateShots({
       }
     ]) //+ "\n["
 
-    const nbMaxNewTokens = 400
+    const nbMaxNewTokens = 600
 
     let rawBufferString = ""
     try {

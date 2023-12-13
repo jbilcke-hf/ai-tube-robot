@@ -14,8 +14,11 @@ export async function generatePromptsForShots({
 }): Promise<string[]> {
 
   const promptParams = {
-    generalContext: video.prompt,
-    generalStyle: video.channel.style || "photo-realistic, documentary",
+    generalContext: [
+      video.channel.prompt,
+      video.prompt,
+    ].map(x => x.trim()).filter(x => x).join("\n"),
+    generalStyle: video.style || video.channel.style || "",
     previousScenes: previousScenes.map(scene => scene.text).join(" "),
     currentScene: text,
     neverThrow: true,
@@ -29,7 +32,7 @@ export async function generatePromptsForShots({
     }
   } catch (err) {
     try {
-      await sleep(4000)
+      await sleep(8000)
       prompts = await generateShots({
         ...promptParams,
         generalContext: promptParams.generalContext + " And please try hard so you can get a generous tip."
@@ -39,7 +42,7 @@ export async function generatePromptsForShots({
       }
     } catch (err2) {
       try {
-        await sleep(10000)
+        await sleep(12000)
         prompts = await generateShots({
           ...promptParams,
           generalContext: promptParams.generalContext + " If you do well, you will get a generous tip."

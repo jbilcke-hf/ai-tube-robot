@@ -1,7 +1,7 @@
 import { VideoInfo } from "../types.mts";
 import { generateImageSDXL } from "./generateImageWithSDXL.mts";
 import { generateSeed } from "./generateSeed.mts";
-import { getLoraStyle } from "./getLoraStyle.mts";
+import { getVideoLoraAndStyle } from "./getVideoLoraAndStyle.mts";
 import { sleep } from "./sleep.mts";
 
 export async function generateVideoThumbnail({
@@ -14,7 +14,7 @@ export async function generateVideoThumbnail({
   height?: number
 }): Promise<string> {
 
-  const { lora, style } = await getLoraStyle(video)
+  const { lora, style } = await getVideoLoraAndStyle(video)
   
   const imageParams = {
     positivePrompt: [
@@ -27,7 +27,7 @@ export async function generateVideoThumbnail({
       `influencer`,
       `fisheye`,
       style,
-      video.description
+      video.description,
     ].join(", "),
     negativePrompt: [
       "bad quality",

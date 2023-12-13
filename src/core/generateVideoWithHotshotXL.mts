@@ -1,7 +1,7 @@
 import { VideoGenerationParams } from "../types.mts"
 import { addBase64HeaderToMp4 } from "./addBase64HeaderToMp4.mts"
 import { generateSeed } from "./generateSeed.mts"
-import { getLoraStyle } from "./getLoraStyle.mts"
+import { getVideoLoraAndStyle } from "./getVideoLoraAndStyle.mts"
 import { getSDXLModel } from "./getSDXLModel.mts"
 
 import { getNegativePrompt, getPositivePrompt } from "./promptUtilities.mts"

@@ -1,12 +1,12 @@
 import { VideoInfo } from "../types.mts"
 import { getSDXLModel } from "./getSDXLModel.mts"
 
-export async function getLoraStyle(video: VideoInfo): Promise<{
+export async function getVideoLoraAndStyle(video: VideoInfo): Promise<{
   lora: string
   style: string
 }> {
   let lora = `${video.lora || video.channel.lora || ""}`.trim()
-  let style = `${video.style ||video.channel.style || ""}`.trim()
+  let style = `${video.style || video.channel.style || ""}`.trim()
 
   if (lora) {
     try {
