@@ -1,15 +1,13 @@
-import { enableRepublishing, priorityAccounts, skipLowPriorityAccounts } from "./config.mts"
+import { enableRepublishing, skipLowPriorityAccounts } from "./config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./huggingface/getters/getChannels.mts"
 import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
-import { isHighPriorityChannel } from "./safety/isHighPriorityChannel.mts"
-import { parseVideoModelName } from "./parsers/parseVideoModelName.mts"
 import { sleep } from "./utils/sleep.mts"
 import { updateVideoIndex } from "./huggingface/setters/updateVideoIndex.mts"
-import { updateQueueWithNewRequests } from "./huggingface/setters/updateQueueWithNewRequests.mts"
-import { isOwnedByBadActor } from "./safety/isOwnedByBadActor.mts"
 import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
 import { updateChannelIndex } from "./huggingface/setters/updateChannelIndex.mts"
+import { isHighPriorityChannel } from "./auth/isHighPriorityChannel.mts"
+import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
