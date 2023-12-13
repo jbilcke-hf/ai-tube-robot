@@ -3,19 +3,19 @@ import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 
-// comment or uncomment this te debug custom function/tests
-
 /*
-import { writeBase64ToFile } from "./core/writeBase64ToFile.mts"
-import { concatenateAudio } from "./core/concatenateAudio.mts"
-import { generateMusicAsBase64 } from "./core/generateMusicAsBase64.mts"
+import { generateMusicAsBase64 } from "./generators/music/generateMusicAsBase64.mts"
+import { writeBase64ToFile } from "./utils/writeBase64ToFile.mts"
+import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"
+
+// comment or uncomment this te debug custom function/tests
 
 export const main = async () => {
   const audioTracks = await generateMusicAsBase64({
     video: {
       music: "minimal industrial techno very melodic",
     } as any,
-    durationInSec: 2 * 60
+    durationInSec: 5 * 60
   })
 
   console.log("write audio, for debugging")

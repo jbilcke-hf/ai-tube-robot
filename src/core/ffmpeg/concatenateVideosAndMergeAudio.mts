@@ -10,6 +10,7 @@ import { concatenateVideos } from "./concatenateVideos.mts";
 import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "../utils/writeBase64ToFile.mts";
 import { getMediaInfo } from "./getMediaInfo.mts";
+import { removeTemporaryFiles } from "../utils/removeTmpFiles.mts";
 
 type ConcatenateVideoAndMergeAudioOptions = {
   output?: string;
@@ -126,9 +127,6 @@ export const concatenateVideosAndMergeAudio = async ({
   } catch (error) {
     throw new Error(`Failed to assemble video: ${(error as Error).message}`);
   } finally {
-    if (!keepTemporaryFiles) {
-      // Cleanup temporary files - you could choose to do this or leave it to the user
-      await Promise.all([...videoFilePaths, ...audioFilePaths].map(p => fs.unlink(p)));
-    }
+    await removeTemporaryFiles([...videoFilePaths, ...audioFilePaths])
   }
 };

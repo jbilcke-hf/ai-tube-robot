@@ -7,9 +7,9 @@ import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 import { addBase64HeaderToWav } from "../utils/addBase64HeaderToWav.mts";
 import { addBase64HeaderToMp4 } from "../utils/addBase64HeaderToMp4.mts";
 import { concatenateVideos } from "./concatenateVideos.mts";
-import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "../utils/writeBase64ToFile.mts";
 import { getMediaInfo } from "./getMediaInfo.mts";
+import { removeTemporaryFiles } from "../utils/removeTmpFiles.mts";
 
 type ConcatenateVideoWithAudioOptions = {
   output?: string;
@@ -147,9 +147,6 @@ export const concatenateVideosWithAudio = async ({
   } catch (error) {
     throw new Error(`Failed to assemble video: ${(error as Error).message}`);
   } finally {
-    if (!keepTemporaryFiles) {
-      // Cleanup temporary files - you could choose to do this or leave it to the user
-      await Promise.all([...videoFilePaths, audioFilePath].map(p => fs.unlink(p)));
-    }
+    await removeTemporaryFiles([...videoFilePaths].concat(audioFilePath))
   }
 };

@@ -5,9 +5,9 @@ import path from "node:path"
 import { v4 as uuidv4 } from "uuid";
 import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 import { addBase64HeaderToWav } from "../utils/addBase64HeaderToWav.mts";
-import { keepTemporaryFiles } from "../config.mts";
 import { writeBase64ToFile } from "../utils/writeBase64ToFile.mts";
 import { getMediaInfo } from "./getMediaInfo.mts";
+import { removeTemporaryFiles } from "../utils/removeTmpFiles.mts";
 
 export type ConcatenateAudioOptions = {
   // those are base64 audio strings!
@@ -37,12 +37,15 @@ export async function concatenateAudio({
   const tempDir = path.join(os.tmpdir(), uuidv4());
   await fs.mkdir(tempDir);
 
+  // console.log("  |- created tmp dir")
+
   // trivial case: there is only one audio to concatenate!
   if (audioTracks.length === 1 && audioTracks[0]) {
     const audioTrack = audioTracks[0]
     const outputFilePath = path.join(tempDir, `audio_0.wav`);
     await writeBase64ToFile(addBase64HeaderToWav(audioTrack), outputFilePath);
 
+    // console.log("  |- there is only one track! so.. returning that")
     const { durationInSec } = await getMediaInfo(outputFilePath);
     return { filepath: outputFilePath, durationInSec };
   }
@@ -64,26 +67,32 @@ export async function concatenateAudio({
     audioFilePaths = audioFilePaths.filter((audio) => existsSync(audio))
 
     const outputFilePath = output ?? path.join(tempDir, `${uuidv4()}.${outputFormat}`);
-    
-    const filterComplex = audioFilePaths
-      .map((_, i, arr) =>
-        i < arr.length - 1
-          ? `[${i}][${i + 1}]acrossfade=d=${crossfadeDurationInSec}:c1=tri:c2=tri[${
-              i ? `a${i - 1}${i + 1}` : `a${i}${i + 1}`
-            }];`
-          : ''
-      )
-      .join('');
-    const outputFileLabel =
-      audioFilePaths.length > 1
-      ? `a${audioFilePaths.length - 2}${audioFilePaths.length - 1}`
-      : "[0]";
+  
+    let filterComplex = "";
+    let prevLabel = "0";
+
+    for (let i = 0; i < audioFilePaths.length - 1; i++) {
+      const nextLabel = `a${i}`;
+      filterComplex += `[${prevLabel}][${i + 1}]acrossfade=d=${crossfadeDurationInSec}:c1=tri:c2=tri[${nextLabel}];`;
+      prevLabel = nextLabel;
+    }
+
+    /*
+    console.log("  |- concatenateAudio(): DEBUG:", {
+      tempDir,
+      audioFilePaths,
+      outputFilePath,
+      filterComplex,
+      prevLabel
+    })
+    */
 
     let cmd: FfmpegCommand = ffmpeg().outputOptions('-vn');
 
     audioFilePaths.forEach((audio, i) => {
-      cmd = cmd.input(audio)
+      cmd = cmd.input(audio);
     });
+
 
     const promise = new Promise<ConcatenateAudioOutput>((resolve, reject) => {
       cmd = cmd
@@ -91,12 +100,13 @@ export async function concatenateAudio({
         .on('end', async () => {
           try {
             const { durationInSec } = await getMediaInfo(outputFilePath);
+            // console.log("concatenation ended! see ->", outputFilePath)
             resolve({ filepath: outputFilePath, durationInSec });
           } catch (err) {
             reject(err);
           }
         })
-        .complexFilter(filterComplex.slice(0, -1), outputFileLabel)
+        .complexFilter(filterComplex, prevLabel)
         .save(outputFilePath);
     });
 
@@ -106,9 +116,6 @@ export async function concatenateAudio({
   } catch (error) {
     throw new Error(`Failed to assemble audio: ${(error as Error).message}`);
   } finally {
-    if (!keepTemporaryFiles) {
-      // Cleanup temporary files - you could choose to do this or leave it to the user
-      await Promise.all([...audioFilePaths].map(p => fs.unlink(p)));
-    }
+    await removeTemporaryFiles(audioFilePaths)
   }
 }
