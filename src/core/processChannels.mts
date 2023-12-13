@@ -74,6 +74,7 @@ export async function processChannels(): Promise<number> {
       if (!enableRepublishing) {
         if (publishedVideos[videoRequest.id]) {
           // video is already published! skipping..
+          console.log(`- video ${videoRequest.id} is already published, skipping it..`)
           continue
         }
       }

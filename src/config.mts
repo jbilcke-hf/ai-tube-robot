@@ -70,7 +70,10 @@ export const nbMaxShots = 45
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files
 export const keepTemporaryFiles = false
 
-export const skipProcessingChannels = false
+// sometimes we want fine control over the queue,
+// so we deploy the bot with the skipProcessingChannels=true
+// that way we are 100% of what will be processed
+export const skipProcessingChannels = true
 
 export const skipProcessingQueue = false
 
