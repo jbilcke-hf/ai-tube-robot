@@ -2,10 +2,10 @@
 import express from "express"
 
 
-import { main } from "./main.mts"
+import { main } from "./core/main.mts"
 
 import { UpdateQueueRequest, UpdateQueueResponse } from "./types.mts"
-import { updateQueueWithNewRequests } from "./core/updateQueueWithNewRequests.mts"
+import { updateQueueWithNewRequests } from "./core/huggingface/setters/updateQueueWithNewRequests.mts"
 
 const app = express()
 const port = 7860
