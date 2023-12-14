@@ -10,14 +10,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apk update
 
-# For FFMPEG and gl concat
-RUN apk add ffmpeg curl build-essential python3 python3-dev libx11-dev libxext-dev libxext6 libglu1-mesa-dev xvfb libxi-dev libglew-dev pkg-config
+RUN apk add alpine-sdk pkgconfig 
 
-# For Puppeteer
-RUN apk add libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0
+# For FFMPEG and gl concat
+RUN apk add ffmpeg curl python3 python3-dev libx11-dev libsm-dev libxrender libxext-dev mesa-dev xvfb libxi-dev glew-dev
 
 # Set up a new user named "user" with user ID 1000
-RUN useradd -o -u 1000 user
+RUN adduser --disabled-password --uid 1001 user
 
 # Switch to the "user" user
 USER user
