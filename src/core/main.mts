@@ -19,10 +19,10 @@ export const main = async () => {
     durationInSec: 5 * 60
   })
 
-  console.log("write audio, for debugging")
-  await Promise.all(audioTracks.map(async (track, i) => {
-    await writeBase64ToFile(track, `test_juju_${i}.wav`)
-  }))
+  // console.log("write audio, for debugging")
+  // await Promise.all(audioTracks.map(async (track, i) => {
+  //   await writeBase64ToFile(track, `test_juju_${i}.wav`)
+  // }))
 
   console.log("concatenating audio")
 
