@@ -77,9 +77,9 @@ export const keepTemporaryFiles = true
 // sometimes we want fine control over the queue,
 // so we deploy the bot with the skipProcessingChannels=true
 // that way we are 100% of what will be processed
-export const skipProcessingChannels = true
+export const skipProcessingChannels = false
 
-export const skipProcessingQueue = false
+export const skipProcessingQueue = true
 
 // if you set it to true, the video won't be uploaded,
 // instead you will see the file path in the console

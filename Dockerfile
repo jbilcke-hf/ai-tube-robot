@@ -1,10 +1,5 @@
-# We need a recent version of FFmpeg
-FROM jrottenberg/ffmpeg:6-alpine AS FFmpeg
-
 # And Node 20
 FROM node:20-alpine
-
-COPY --from=FFmpeg /usr/local /usr/local
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -13,7 +8,9 @@ RUN apk update
 RUN apk add alpine-sdk pkgconfig 
 
 # For FFMPEG and gl concat
-RUN apk add ffmpeg curl python3 python3-dev libx11-dev libsm-dev libxrender libxext-dev mesa-dev xvfb libxi-dev glew-dev
+RUN apk add curl python3 python3-dev libx11-dev libsm-dev libxrender libxext-dev mesa-dev xvfb libxi-dev glew-dev
+
+RUN apk add ffmpeg
 
 # Set up a new user named "user" with user ID 1000
 RUN adduser --disabled-password --uid 1001 user
@@ -36,8 +33,9 @@ COPY --chown=user package*.json $HOME/app
 # make sure the .env is copied as well
 COPY --chown=user .env $HOME/app
 
-RUN npm install
+RUN ffmpeg -version
 
+RUN npm install
 
 # Copy the current directory contents into the container at $HOME/app setting the owner to the user
 COPY --chown=user . $HOME/app

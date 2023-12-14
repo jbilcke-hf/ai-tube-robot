@@ -42,7 +42,7 @@ export async function concatenateAudio({
   // trivial case: there is only one audio to concatenate!
   if (audioTracks.length === 1 && audioTracks[0]) {
     const audioTrack = audioTracks[0]
-    const outputFilePath = path.join(tempDir, `audio_0.wav`);
+    const outputFilePath = path.join(tempDir, `audio_0.${outputFormat}`);
     await writeBase64ToFile(addBase64HeaderToWav(audioTrack), outputFilePath);
 
     // console.log("  |- there is only one track! so.. returning that")
@@ -59,7 +59,7 @@ export async function concatenateAudio({
     let i = 0
     for (const track of audioTracks) {
       if (!track) { continue }
-      const audioFilePath = path.join(tempDir, `audio${++i}.wav`);
+      const audioFilePath = path.join(tempDir, `audio_${++i}.wav`);
       await writeBase64ToFile(addBase64HeaderToWav(track), audioFilePath);
       audioFilePaths.push(audioFilePath);
     }
@@ -86,7 +86,7 @@ export async function concatenateAudio({
       prevLabel
     })
 
-    let cmd: FfmpegCommand = ffmpeg().outputOptions('-vn');
+    let cmd: FfmpegCommand = ffmpeg() // .outputOptions('-vn');
 
     audioFilePaths.forEach((audio, i) => {
       cmd = cmd.input(audio);
@@ -113,7 +113,9 @@ export async function concatenateAudio({
 
     return result
   } catch (error) {
-    throw new Error(`Failed to assemble audio: ${(error as Error).message}`);
+    console.error(`Failed to assemble audio!`)
+    console.error(error)
+    throw new Error(`Failed to assemble audio: ${(error as Error)?.message || error}`);
   } finally {
     await removeTemporaryFiles(audioFilePaths)
   }
