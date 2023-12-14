@@ -237,6 +237,8 @@ export type VideoStatus =
   | "submitted" // the prompt has been submitted, but is not added to the index queue yet
   | "queued" // the prompt has been added to the index queue, but is not processed yet. Once queued it cannot be modified.
   | "generating" // the video is being generated
+  // TODO add a state to indicate the audio is being generated
+  // this will be useful in case generation fails
   | "published" // success!
   | "error" // video failed to generate
 

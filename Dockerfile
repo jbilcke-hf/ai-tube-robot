@@ -1,4 +1,10 @@
-FROM node:18
+# We need a recent version of FFmpeg
+FROM FROM jrottenberg/ffmpeg:6-alpine AS FFmpeg
+
+# And Node 20
+FROM node:20-alpine
+
+COPY --from=FFmpeg /usr/local /usr/local
 
 ARG DEBIAN_FRONTEND=noninteractive
 

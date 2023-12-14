@@ -244,32 +244,36 @@ export async function processQueue(): Promise<number> {
     let finalVideoPath = concatenatedVideos.filepath
 
     if (musicTracks.length) {
-      console.log("  |- concatenating music..")
-      const concatenatedMusic = await concatenateAudio({
-        audioTracks: musicTracks,
-        crossfadeDurationInSec: 2 // 2 seconds
-      })
+      try {
+        console.log("  |- concatenating music..")
 
-      console.log(`  |- concatenated ${
-        musicTracks.length
-      } music tracks (total duration: ${
-        concatenatedMusic.durationInSec
-      } sec)`)
+        const concatenatedMusic = await concatenateAudio({
+          audioTracks: musicTracks,
+          crossfadeDurationInSec: 2 // 2 seconds
+        })
 
-      console.log(`  |- adding music to the video..`)
-      const concatenatedVideoWithAudio = await concatenateVideosWithAudio({
-        // note the use of *paths* in the parameters
-        audioFilePath: concatenatedMusic.filepath, // must a base64 WAV
-        videoFilePaths: [concatenatedVideos.filepath], // must be an array of base64 MP4 videos
+        console.log(`  |- concatenated ${
+          musicTracks.length
+        } music tracks (total duration: ${
+          concatenatedMusic.durationInSec
+        } sec)`)
 
-        // unless we are muted, the voice will be higher than the music
-        videoTracksVolume: videoVoice.muted ? 1.0 : 0.65,
-        audioTrackVolume: videoVoice.muted ? 0.0 : 0.35,
-      })
+        console.log(`  |- adding music to the video..`)
+        const concatenatedVideoWithAudio = await concatenateVideosWithAudio({
+          // note the use of *paths* in the parameters
+          audioFilePath: concatenatedMusic.filepath, // must a base64 WAV
+          videoFilePaths: [concatenatedVideos.filepath], // must be an array of base64 MP4 videos
 
-      finalVideoPath = concatenatedVideoWithAudio.filepath
+          // unless we are muted, the voice will be higher than the music
+          videoTracksVolume: videoVoice.muted ? 1.0 : 0.65,
+          audioTrackVolume: videoVoice.muted ? 0.0 : 0.35,
+        })
+
+        finalVideoPath = concatenatedVideoWithAudio.filepath
+      }  catch (err) {
+        console.log(`  |- failed to concatenate the audio: `, err)
+      }
     }
-
 
     if (skipUpload) {
       console.log("  -> development mode, so we skip uploading to AI Tube.")

@@ -3,7 +3,7 @@ import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 
-/*
+
 import { generateMusicAsBase64 } from "./generators/music/generateMusicAsBase64.mts"
 import { writeBase64ToFile } from "./utils/writeBase64ToFile.mts"
 import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"
@@ -11,9 +11,10 @@ import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"
 // comment or uncomment this te debug custom function/tests
 
 export const main = async () => {
+  console.log("running the server sanity check..")
   const audioTracks = await generateMusicAsBase64({
     video: {
-      music: "minimal industrial techno very melodic",
+      music: "groovy techno balearic deep house loop",
     } as any,
     durationInSec: 5 * 60
   })
@@ -24,12 +25,14 @@ export const main = async () => {
   }))
 
   console.log("concatenating audio")
+
+  // if this step failed, then something is very wrong
   const concatenatedAudio = await concatenateAudio({ audioTracks })
   console.log("concatenatedAudio:", concatenatedAudio.filepath)
 }
-*/
 
-export const main = async () => {
+
+export const main2 = async () => {
   let delayInSeconds = 5 * 60 // let's check every 5 minutes
 
   // note: this is not an interval, because we are always waiting for current job

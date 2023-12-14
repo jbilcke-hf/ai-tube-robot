@@ -77,7 +77,7 @@ export async function concatenateAudio({
       prevLabel = nextLabel;
     }
 
-    /*
+  
     console.log("  |- concatenateAudio(): DEBUG:", {
       tempDir,
       audioFilePaths,
@@ -85,7 +85,6 @@ export async function concatenateAudio({
       filterComplex,
       prevLabel
     })
-    */
 
     let cmd: FfmpegCommand = ffmpeg().outputOptions('-vn');
 
