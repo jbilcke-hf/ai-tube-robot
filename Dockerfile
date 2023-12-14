@@ -1,5 +1,5 @@
 # We need a recent version of FFmpeg
-FROM FROM jrottenberg/ffmpeg:6-alpine AS FFmpeg
+FROM jrottenberg/ffmpeg:6-alpine AS FFmpeg
 
 # And Node 20
 FROM node:20-alpine
