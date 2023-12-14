@@ -3,6 +3,7 @@ import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 
+/*
 import { generateMusicAsBase64 } from "./generators/music/generateMusicAsBase64.mts"
 import { writeBase64ToFile } from "./utils/writeBase64ToFile.mts"
 import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"
@@ -29,9 +30,9 @@ export const main = async () => {
   const concatenatedAudio = await concatenateAudio({ audioTracks })
   console.log("concatenatedAudio:", concatenatedAudio.filepath)
 }
+*/
 
-
-export const main2 = async () => {
+export const main = async () => {
   let delayInSeconds = 5 * 60 // let's check every 5 minutes
 
   // note: this is not an interval, because we are always waiting for current job
