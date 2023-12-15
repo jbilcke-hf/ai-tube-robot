@@ -95,10 +95,16 @@ export const priorityAccounts = [
 export const skipLowPriorityAccounts = true
 
 // users whose content is banned, but their Hugging Face account has not been disabled
+// being in this list means the account won't even be indexed and listed
+//
 // as the platform grows in popularity, it may be necessary to filter out bad actors
-// trying to hijack the public "latest content" page
+// trying to hijack the public "latest content" page with SEO spamming, cross-posting,
+// mass-creation of videos, hack attempts, have a disrupting or childish behavior, don't follow rules etc
 export const bannedAccounts = [
   // good news! nobody is there.. yet.
+
+  // if you put someone here, please add a link or explanation as to why you believe
+  // they should be put in this list (eg. "re-posted offensive material even after being told not to" etc)
 ]
 
 // ------------------------------------------------------------------------------------

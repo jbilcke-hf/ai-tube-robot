@@ -4,6 +4,14 @@ import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 
 /*
+import { addTextToVideo } from "./ffmpeg/addTextToVideo.mts"
+
+export const main = async () => {
+  await addTextToVideo()
+}
+*/
+
+/*
 import { generateMusicAsBase64 } from "./generators/music/generateMusicAsBase64.mts"
 import { writeBase64ToFile } from "./utils/writeBase64ToFile.mts"
 import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"

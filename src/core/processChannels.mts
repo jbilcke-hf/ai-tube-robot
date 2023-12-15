@@ -8,6 +8,7 @@ import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
 import { updateChannelIndex } from "./huggingface/setters/updateChannelIndex.mts"
 import { isHighPriorityChannel } from "./auth/isHighPriorityChannel.mts"
 import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
+import { getChannelRating } from "./auth/getChannelRating.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
@@ -57,6 +58,9 @@ export async function processChannels(): Promise<number> {
   let nbNewlyEnqueued = 0
 
   for (const channel of channels) {
+
+    if (!getChannelRating(channel)) { continue }
+    
     await sleep(500)
 
     console.log(`scanning channel "${channel.datasetName}" by @${channel.datasetUser}`)

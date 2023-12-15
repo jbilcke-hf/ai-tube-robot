@@ -6,6 +6,7 @@ import { main } from "./core/main.mts"
 
 import { UpdateQueueRequest, UpdateQueueResponse } from "./types.mts"
 import { updateQueueWithNewRequests } from "./core/huggingface/setters/updateQueueWithNewRequests.mts"
+import { getCssStyle } from "./core/utils/getCssStyle.mts"
 
 const app = express()
 const port = 7860
@@ -60,6 +61,37 @@ app.post("/update-queue", async (req, res) => {
     res.end()
     return
   }
+})
+
+app.get("/render", (req, res) => {
+  // TODO render some JSX?
+  
+  // the idea would be to render content as HTML,
+  // then take a screenshot as a transparent PNT
+  // https://github.com/puppeteer/puppeteer/issues/4152#issuecomment-917685384
+  const text = ""
+
+  const output = `
+<html>
+  <head>
+  <style>${getCssStyle({
+    // width: 1024,
+    // height: 576,
+    fontFamily: "Montserrat",
+    fontSize: 10,
+    fontWeight: 500
+  })}</style></head>
+  <body>
+    <div class="content">
+      <p class="highlight">This is hot :p</p>
+      <p class="outline">Oh yeah!</p>
+    </div>
+  </body>
+</html>`
+
+res.status(200)
+res.write(output)
+res.end()
 })
 
 app.listen(port, () => {
