@@ -5,10 +5,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apk update
 
-RUN apk add alpine-sdk pkgconfig 
+RUN apk add alpine-sdk pkgconfig
 
 # For FFMPEG and gl concat
 RUN apk add curl python3 python3-dev libx11-dev libsm-dev libxrender libxext-dev mesa-dev xvfb libxi-dev glew-dev
+
+# For Puppeteer
+RUN apk add build-base gcompat udev ttf-opensans chromium
 
 RUN apk add ffmpeg
 

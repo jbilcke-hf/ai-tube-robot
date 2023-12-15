@@ -20,6 +20,17 @@ It is important that you make sure to use the correct version of Node (Node 20)
 4. edit `.env.local` to define the secrets / api access keys
 5. `npm run start`
 
+# Testing the Docker image
+
+Note: you need to install Docker, and it needs to be already running.
+
+You will also need to build it for *your* architecture.
+
+```bash
+docker build --platform linux/arm64 -t ai-tube-robot .
+docker run -it -p 7860:7860 ai-tube-robot
+```
+
 # Architecture
 
 AI Channels are just Hugging Face datasets.

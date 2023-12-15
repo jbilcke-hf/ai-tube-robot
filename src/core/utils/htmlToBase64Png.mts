@@ -28,7 +28,17 @@ export async function htmlToBase64Png({
   }
 
   const browser = await puppeteer.launch({
-    headless: "new"
+    headless: "new",
+
+    // apparently we need those, see:
+    // https://unix.stackexchange.com/questions/694734/puppeteer-in-alpine-docker-with-chromium-headless-dosent-seems-to-work
+    executablePath: '/usr/bin/chromium-browser',
+    args: [
+      '--no-sandbox',
+      '--headless',
+      '--disable-gpu',
+      '--disable-dev-shm-usage'
+    ]
   })
 
   const page = await browser.newPage()
