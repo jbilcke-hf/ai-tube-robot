@@ -1,6 +1,6 @@
-import { adminCredentials } from "../config.mts"
+import { adminCredentials, defaultVideoModel, defaultVideoOrientation } from "../config.mts"
 import { Credentials, downloadFile, whoAmI } from "../../libraries/huggingface/hub/src/index.mts"
-import { ChannelInfo, VideoGenerationModel } from "../../types.mts"
+import { ChannelInfo, VideoGenerationModel, VideoOrientation } from "../../types.mts"
 import { parseDatasetReadme } from "./parseDatasetReadme.mts"
 
 export async function parseChannel(options: {
@@ -61,7 +61,7 @@ export async function parseChannel(options: {
   let label = slug.replaceAll("-", " ")
 
   // we assume legacy videos are using HotshotXL
-  let model: VideoGenerationModel = "HotshotXL"
+  let model: VideoGenerationModel = defaultVideoModel
   let lora = ""
   let style = ""
   let thumbnail = ""
@@ -70,6 +70,7 @@ export async function parseChannel(options: {
   let voice = ""
   let music = ""
   let tags: string[] = []
+  let orientation: VideoOrientation = defaultVideoOrientation
 
   // console.log(`going to read datasets/${name}`)
   try {
@@ -88,11 +89,12 @@ export async function parseChannel(options: {
     label = parsedDatasetReadme.pretty_name
     description = parsedDatasetReadme.description
     thumbnail = parsedDatasetReadme.thumbnail || "thumbnail.jpg"
-    model = parsedDatasetReadme.model
+    model = parsedDatasetReadme.model || defaultVideoModel
     lora = parsedDatasetReadme.lora || ""
     style = parsedDatasetReadme.style || ""
     voice = parsedDatasetReadme.voice || ""
     music = parsedDatasetReadme.music || ""
+    orientation = parsedDatasetReadme.orientation || defaultVideoOrientation
 
     thumbnail =
       thumbnail.startsWith("http")
@@ -125,7 +127,8 @@ export async function parseChannel(options: {
     prompt,
     likes: options.likes,
     tags,
-    updatedAt: options.updatedAt.toISOString()
+    updatedAt: options.updatedAt.toISOString(),
+    orientation,
   }
 
   return channel

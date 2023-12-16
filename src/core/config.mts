@@ -2,7 +2,7 @@ import fs from "node:fs"
 
 import dotenv from "dotenv"
 import { Credentials } from "@huggingface/hub"
-import { VideoGenerationModel } from "../types.mts"
+import { VideoGenerationModel, VideoOrientation } from "../types.mts"
 
 dotenv.config()
 
@@ -26,8 +26,9 @@ export const adminUsername = `${process.env.ADMIN_HUGGING_FACE_USERNAME || ""}`
 
 export const adminCredentials: Credentials = { accessToken: adminApiKey }
 
-// TODO: switch to SVD
 export const defaultVideoModel: VideoGenerationModel = "SVD"
+export const defaultVideoOrientation: VideoOrientation = "landscape"
+export const defaultVoice = "Julian"
 
 export const aiStoryServerApiUrl = `${process.env.AI_STORY_SERVER_API_GRADIO_URL || ""}`
 export const apiStoryServerApiToken = `${process.env.AI_STORY_SERVER_API_SECRET_TOKEN || ""}`
@@ -77,7 +78,7 @@ export const keepTemporaryFiles = true
 // sometimes we want fine control over the queue,
 // so we deploy the bot with the skipProcessingChannels=true
 // that way we are 100% of what will be processed
-export const skipProcessingChannels = false
+export const skipProcessingChannels = true
 
 export const skipProcessingQueue = false
 
@@ -93,6 +94,12 @@ export const priorityAccounts = [
 
 // let's keep it to try until we have ironed things out!
 export const skipLowPriorityAccounts = false
+
+// custom list of video IDs to forcefully re-generate
+export const toRegenerate = [
+  // "01e3fdf7-ec1d-4720-b838-cae798cf0abc",
+  // "00b4bcda-7b4a-40f8-9833-e490425a7b91"
+]
 
 // users whose content is banned, but their Hugging Face account has not been disabled
 // being in this list means the account won't even be indexed and listed

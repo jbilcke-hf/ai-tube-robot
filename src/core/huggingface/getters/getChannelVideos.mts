@@ -2,6 +2,7 @@ import { adminApiKey } from "../../config.mts"
 import { ChannelInfo, VideoInfo, VideoStatus } from "../../../types.mts"
 import { getVideoIndex } from "./getVideoIndex.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
+import { orientationToWidthHeight } from "../utils/orientationToWidthHeight.mts"
 
 // return 
 export async function getChannelVideos({
@@ -44,6 +45,9 @@ export async function getChannelVideos({
       updatedAt: v.updatedAt,
       tags: v.tags,
       channel,
+      duration: v.duration || 0,
+      orientation: v.orientation,
+      ...orientationToWidthHeight(v.orientation),
     }
 
     if (queued[v.id]) {

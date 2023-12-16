@@ -6,6 +6,7 @@ import { getCredentials } from "../../auth/getCredentials.mts"
 import { parseDatasetPrompt } from "../../parsers/parseDatasetPrompt.mts"
 import { parsePromptFileName } from "../../parsers/parsePromptFileName.mts"
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
+import { orientationToWidthHeight } from "../utils/orientationToWidthHeight.mts"
 
 /**
  * Return all the videos requests created by a user on their channel
@@ -72,7 +73,7 @@ export async function getVideoRequestsFromChannel({
           continue
         }
 
-        const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice } = parseDatasetPrompt(rawMarkdown, channel)
+        const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice, orientation } = parseDatasetPrompt(rawMarkdown, channel)
 
         if (!title || !description || !prompt) {
           // console.log("dataset prompt is incomplete or unparseable")
@@ -102,6 +103,9 @@ export async function getVideoRequestsFromChannel({
           updatedAt: file.lastCommit?.date || new Date().toISOString(),
           tags: Array.isArray(tags) && tags.length ? tags : channel.tags,
           channel,
+          orientation,
+          ...orientationToWidthHeight(orientation),
+          duration: 0,
         }
 
         videos[id] = video

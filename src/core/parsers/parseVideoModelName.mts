@@ -1,9 +1,10 @@
 import { VideoGenerationModel } from "../../types.mts"
+import { defaultVideoModel } from "../config.mts"
 
 export function parseVideoModelName(text: any, defaultToUse: VideoGenerationModel): VideoGenerationModel {
   const rawModelString = `${text || ""}`.trim().toLowerCase()
 
-  let model: VideoGenerationModel = "HotshotXL"
+  let model: VideoGenerationModel = defaultToUse || defaultVideoModel
 
   if (
     rawModelString === "stable video diffusion" || 
@@ -20,5 +21,5 @@ export function parseVideoModelName(text: any, defaultToUse: VideoGenerationMode
     model = "LaVie"
   }
 
-  return defaultToUse
+  return model
 }

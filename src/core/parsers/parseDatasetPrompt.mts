@@ -1,10 +1,12 @@
 import { ChannelInfo, ParsedDatasetPrompt } from "../../types.mts"
+import { defaultVideoModel, defaultVideoOrientation } from "../config.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
+import { parseVideoOrientation } from "./parseVideoOrientation.mts"
 
 
 export function parseDatasetPrompt(markdown: string, channel: ChannelInfo): ParsedDatasetPrompt {
   try {
-    const { title, description, tags, prompt, model, lora, style, thumbnail, voice, music } = parseMarkdown(markdown)
+    const { title, description, tags, prompt, model, lora, style, thumbnail, voice, music, orientation } = parseMarkdown(markdown)
 
     return {
       title: typeof title === "string" && title ? title : "",
@@ -19,6 +21,7 @@ export function parseDatasetPrompt(markdown: string, channel: ChannelInfo): Pars
       thumbnail: typeof thumbnail === "string" && thumbnail ? thumbnail : "",
       voice: typeof voice === "string" && voice ? voice : (channel.voice || ""),
       music: typeof music === "string" && music ? music : (channel.music || ""),
+      orientation: parseVideoOrientation(orientation, channel.orientation),
     }
   } catch (err) {
     return {
@@ -26,12 +29,13 @@ export function parseDatasetPrompt(markdown: string, channel: ChannelInfo): Pars
       description:  "",
       tags: channel.tags || [],
       prompt: "",
-      model: channel.model || "HotshotXL",
+      model: channel.model || defaultVideoModel,
       lora: channel.lora || "",
       style: channel.style || "",
       thumbnail: "",
       voice: channel.voice || "",
       music: channel.music || "",
+      orientation: channel.orientation || defaultVideoOrientation,
     }
   }
 }
@@ -52,6 +56,7 @@ function parseMarkdown(markdown: string): {
   thumbnail: string
   voice: string
   music: string
+  orientation: string
 } {
   markdown = `${markdown || ""}`.trim()
   // Improved regular expression to find markdown sections and accommodate multi-line content.
@@ -76,5 +81,6 @@ function parseMarkdown(markdown: string): {
     thumbnail: sections["thumbnail"] || "",
     voice: sections["voice"] || "",
     music: sections["music"] || "",
+    orientation: sections["orientation"] || "",
   };
 }

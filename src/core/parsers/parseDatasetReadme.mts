@@ -3,7 +3,8 @@ import metadataParser from "markdown-yaml-metadata-parser"
 
 import { ParsedDatasetReadme, ParsedMetadataAndContent } from "../../types.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
-import { defaultVideoModel } from "../config.mts"
+import { defaultVideoModel, defaultVideoOrientation } from "../config.mts"
+import { parseVideoOrientation } from "./parseVideoOrientation.mts"
 
 export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
   try {
@@ -13,7 +14,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
 
     // console.log("DEBUG README:", { metadata, content })
     
-    const { model, lora, style, thumbnail, voice, music, description, prompt, tags } = parseMarkdown(content)
+    const { model, lora, style, thumbnail, voice, music, description, prompt, tags, orientation } = parseMarkdown(content)
 
     return {
       license: typeof metadata?.license === "string" ? metadata.license : "",
@@ -28,6 +29,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       music,
       description,
       prompt,
+      orientation: parseVideoOrientation(orientation, defaultVideoOrientation),
     }
   } catch (err) {
     return {
@@ -35,7 +37,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       pretty_name: "",
       hf_tags: [], // Hugging Face tags
       tags: [],
-      model: "HotshotXL",
+      model: defaultVideoModel,
       lora: "",
       style: "",
       thumbnail: "",
@@ -43,6 +45,7 @@ export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
       music: "",
       description: "",
       prompt: "",
+      orientation: defaultVideoOrientation,
     }
   }
 }
@@ -62,6 +65,7 @@ function parseMarkdown(markdown: string): {
   description: string
   prompt: string
   tags: string
+  orientation: string
 } {
   // console.log("markdown:", markdown)
   // Improved regular expression to find markdown sections and accommodate multi-line content.
@@ -85,5 +89,6 @@ function parseMarkdown(markdown: string): {
     music: sections["music"] || "",
     prompt: sections["prompt"] || "",
     tags: sections["tags"] || "",
+    orientation: sections["orientation"] || "",
   };
 }
