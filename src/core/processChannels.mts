@@ -23,6 +23,9 @@ export async function processChannels(): Promise<number> {
   console.log("processChannels(): checking the Hugging Face platform for AI Tube channels")
   
   let channels = await getChannels({})
+
+  const channelsPrevious = JSON.stringify(channels)
+
   const nbTotalChannels = channels.length
 
   console.log(`processChannels(): ${channels.length} public channels identified`)
@@ -40,10 +43,16 @@ export async function processChannels(): Promise<number> {
 
   console.log(`processChannels(): updating the channel index..`)
 
-  // we update the channel index
-  await updateChannelIndex(channels)
 
-  console.log(`processChannels(): channel index updated!`)
+  const channelsNow = JSON.stringify(channels)
+
+  if (channelsPrevious !== channelsNow) {
+    // we update the channel index
+    await updateChannelIndex(channels)
+    
+
+    console.log(`processChannels(): channel index updated!`)
+  }
 
   if (skipLowPriorityAccounts) {
     console.log("processChannels(): skipLowPriorityAccounts is toggled ON")

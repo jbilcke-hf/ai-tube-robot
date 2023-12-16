@@ -92,7 +92,7 @@ export const priorityAccounts = [
 ]
 
 // let's keep it to try until we have ironed things out!
-export const skipLowPriorityAccounts = true
+export const skipLowPriorityAccounts = false
 
 // users whose content is banned, but their Hugging Face account has not been disabled
 // being in this list means the account won't even be indexed and listed
