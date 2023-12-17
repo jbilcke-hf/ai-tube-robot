@@ -16,6 +16,7 @@ import { updateVideoIndex } from "./huggingface/setters/updateVideoIndex.mts"
 import { uploadFinalVideoFileToAITube } from "./huggingface/setters/uploadFinalVideoFileToAITube.mts"
 import { uploadVideoMeta } from "./huggingface/setters/uploadVideoMeta.mts"
 import { uploadVideoThumbnail } from "./huggingface/setters/uploadVideoThumbnail.mts"
+import { getMediaInfo } from "./ffmpeg/getMediaInfo.mts"
 
 
 export async function processQueue(): Promise<number> {
@@ -290,6 +291,13 @@ export async function processQueue(): Promise<number> {
       video.status = "published"
   
       publishedVideos[video.id] = video
+
+      try {
+        const finalVideoMediaInfo = await getMediaInfo(finalVideoPath)
+        video.duration = finalVideoMediaInfo.durationInSec
+      } catch (err) {
+        // failed to get media info - should be extremely rare, since we just uploaded it successfully
+      }
 
       await uploadVideoMeta({ video })
   
