@@ -83,8 +83,24 @@ export async function processChannels(): Promise<number> {
   
     for (const videoRequest of videosRequests) {
 
+      // this is a protection against attempts to corrupt our database
+      const videoAlreadyGenerating = generatingVideos[videoRequest.id]
+      const videoAlreadyPublished = publishedVideos[videoRequest.id]
+      const videoAlreadyQueued = queuedVideos[videoRequest.id]
+
+      const userTriedToUseSomeoneElseVideoId =
+        (videoAlreadyGenerating && videoAlreadyGenerating.channel.id !== videoRequest.channel.id)
+        || (videoAlreadyPublished && videoAlreadyPublished.channel.id !== videoRequest.channel.id)
+        || (videoAlreadyQueued && videoAlreadyQueued.channel.id !== videoRequest.channel.id)
+
+      if (userTriedToUseSomeoneElseVideoId) {
+        console.error("WOAH! WE HAVE A VIDEO ID COLLISION!")
+        console.log("Please warn the user that they cannot reuse the ID of someone's else!")
+        continue
+      }
+      
       if (!enableRepublishing) {
-        if (publishedVideos[videoRequest.id]) {
+        if (videoAlreadyPublished) {
           // video is already published! skipping..
           console.log(`- video ${videoRequest.id} is already published, skipping it..`)
           continue

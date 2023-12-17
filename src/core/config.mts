@@ -82,6 +82,8 @@ export const skipProcessingChannels = true
 
 export const skipProcessingQueue = false
 
+export const allowUuidCollisions = false
+
 // if you set it to true, the video won't be uploaded,
 // instead you will see the file path in the console
 export const skipUpload = false
