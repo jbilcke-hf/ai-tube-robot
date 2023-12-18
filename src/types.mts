@@ -399,6 +399,13 @@ export type VideoInfo = {
   numberOfLikes: number
 
   /**
+   * Counter for the number of dislikes
+   * 
+   * Note: should be managed by the index to prevent cheating
+   */
+  numberOfDislikes: number
+  
+  /**
    * When was the video updated
    */
   updatedAt: string
