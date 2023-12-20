@@ -13,10 +13,12 @@ import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
 import { parseVoiceModelName } from "./parsers/parseVoiceModelName.mts"
 import { sleep } from "./utils/sleep.mts"
 import { updateVideoIndex } from "./huggingface/setters/updateVideoIndex.mts"
-import { uploadFinalVideoFileToAITube } from "./huggingface/setters/uploadFinalVideoFileToAITube.mts"
+import { uploadMp4 } from "./huggingface/setters/uploadMp4.mts"
 import { uploadVideoMeta } from "./huggingface/setters/uploadVideoMeta.mts"
 import { uploadVideoThumbnail } from "./huggingface/setters/uploadVideoThumbnail.mts"
 import { getMediaInfo } from "./ffmpeg/getMediaInfo.mts"
+import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
+import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
 
 
 export async function processQueue(): Promise<number> {
@@ -283,7 +285,7 @@ export async function processQueue(): Promise<number> {
     } else {
       console.log("  -> uploading file to AI Tube:", finalVideoPath)
 
-      const uploadedVideoUrl = await uploadFinalVideoFileToAITube({
+      const uploadedVideoUrl = await uploadMp4({
         video,
         filePath: finalVideoPath
       })
@@ -300,6 +302,20 @@ export async function processQueue(): Promise<number> {
       }
 
       await uploadVideoMeta({ video })
+
+      // one more thing: we also extract the audio track to mp3 (for AiTube Music)
+      try {
+        const pathToMp3 = await convertMp4ToMp3({
+          inputVideoPath: finalVideoPath
+        })
+        const uploadedAudioUrl = await uploadMp3({
+          video,
+          filePath: finalVideoPath
+        })
+      } catch (err) {
+        // failed to generate the mp3
+      }
+
   
       // TODO: we should put this index in the database, as it might grow to 10k and more
       await updateVideoIndex({ status: "published", videos: publishedVideos })  

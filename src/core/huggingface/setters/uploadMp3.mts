@@ -6,7 +6,7 @@ import { uploadFile } from "@huggingface/hub"
 import { VideoInfo } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
 
-export async function uploadFinalVideoFileToAITube({
+export async function uploadMp3({
   video,
   filePath,
 }: {
@@ -24,7 +24,7 @@ export async function uploadFinalVideoFileToAITube({
   const buffer = await fs.readFile(filePath)
   const blob = new Blob([buffer])
 
-  const uploadFilePath = `videos/${video.id}.mp4`
+  const uploadFilePath = `videos/${video.id}.mp3`
 
   await uploadFile({
 	  credentials: adminCredentials,
@@ -33,8 +33,8 @@ export async function uploadFinalVideoFileToAITube({
       path: uploadFilePath,
       content: blob as any,
     },
-    commitTitle: "[robot] Add new MP4 video file",
+    commitTitle: "[robot] Add new MP3 audio file",
   })
 
-  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp4`
+  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp3`
 }

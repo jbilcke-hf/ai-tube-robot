@@ -2,6 +2,10 @@ import { skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
+import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
+import { downloadMp4 } from "./huggingface/getters/downloadMp4.mts"
+import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
+import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
 
 /*
 import { addTextToVideo } from "./ffmpeg/addTextToVideo.mts"
@@ -37,6 +41,32 @@ export const main = async () => {
   // if this step failed, then something is very wrong
   const concatenatedAudio = await concatenateAudio({ audioTracks })
   console.log("concatenatedAudio:", concatenatedAudio.filepath)
+}
+*/
+
+/*
+this code convert mp4 to mp3
+export const main = async () => {
+  // for each video in the index, we download the mp4, and we convert it to mp3
+
+  const videos = Object.values(await getVideoIndex({ status: "published" }))
+
+  for (const video of videos) {
+    console.log("-------------------------------------")
+    try {
+      // first we try to download the mp4
+      const pathToMp4 = await downloadMp4({ urlToMp4: video.assetUrl })
+      console.log("downloaded to:", pathToMp4)
+
+      const pathToMp3 = await convertMp4ToMp3({ inputVideoPath: pathToMp4 })
+      console.log("converted to:", pathToMp3)
+
+      const uploadedTo = await uploadMp3({ video, filePath: pathToMp3 })
+      console.log("uploaded to:", uploadedTo)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 }
 */
 
