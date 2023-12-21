@@ -78,7 +78,7 @@ export const keepTemporaryFiles = true
 // sometimes we want fine control over the queue,
 // so we deploy the bot with the skipProcessingChannels=true
 // that way we are 100% of what will be processed
-export const skipProcessingChannels = false
+export const skipProcessingChannels = true
 
 // this is the main job! be sure of if you want to skip it or not!
 export const skipProcessingQueue = false
