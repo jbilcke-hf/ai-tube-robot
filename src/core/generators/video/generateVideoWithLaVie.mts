@@ -11,6 +11,11 @@ const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
 
 export async function generateVideoWithLaVie({
   prompt = "",
+  orientation,
+  projection,
+  width,
+  height,
+  lora = "",
   style = "",
   // width = 512,
   // height = 320,

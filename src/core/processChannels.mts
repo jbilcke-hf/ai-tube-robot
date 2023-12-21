@@ -9,7 +9,7 @@ import { updateChannelIndex } from "./huggingface/setters/updateChannelIndex.mts
 import { isHighPriorityChannel } from "./auth/isHighPriorityChannel.mts"
 import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
 import { getChannelRating } from "./auth/getChannelRating.mts"
-import { orientationToWidthHeight } from "./huggingface/utils/orientationToWidthHeight.mts"
+import { computeOrientationProjectionWidthHeight } from "./huggingface/utils/computeOrientationProjectionWidthHeight.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
@@ -102,7 +102,7 @@ export async function processChannels(): Promise<number> {
       if (!enableRepublishing) {
         if (videoAlreadyPublished) {
           // video is already published! skipping..
-          console.log(`- video ${videoRequest.id} is already published, skipping it..`)
+          // console.log(`- video ${videoRequest.id} is already published, skipping it..`)
           continue
         }
       }
@@ -135,8 +135,11 @@ export async function processChannels(): Promise<number> {
           tags: videoRequest.tags,
           channel,
           duration: videoRequest.duration || 0,
-          orientation: videoRequest.orientation,
-          ...orientationToWidthHeight(videoRequest.orientation),
+          ...computeOrientationProjectionWidthHeight({
+            lora: videoRequest.lora,
+            orientation: videoRequest.orientation,
+            // projection, // <- will be extrapolated from the LoRA for now
+          }),
         }
         queuedVideos[videoRequest.id] = newVideo
 

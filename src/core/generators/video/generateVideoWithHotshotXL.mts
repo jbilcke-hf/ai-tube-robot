@@ -12,6 +12,10 @@ const accessToken = `${process.env.AI_TUBE_MODEL_HOTSHOT_XL_SECRET_TOKEN || ""}`
 // this generates a base64 video
 export const generateVideoWithHotshotXL = async ({
   prompt,
+  orientation,
+  projection,
+  width,
+  height,
   lora = "",
   style = ""
 }: VideoGenerationParams): Promise<string> => {
@@ -21,8 +25,8 @@ export const generateVideoWithHotshotXL = async ({
   const nbFrames = 8 // for now the only values that make sense are 1 (for a jpg) or 8 (for a video)
   const videoDuration = 1000 // for now Hotshot doesn't really supports anything else
   const nbSteps = 70 // when rendering a final video, we want a value like 50 or 70 here
-  const size = "672x384" // "768x320"
-
+ 
+  const size = projection === "equirectangular" ? "1024x512" : "672x384" // "768x320"
 
   // pimp the prompt
 

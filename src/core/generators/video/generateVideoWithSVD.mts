@@ -6,14 +6,19 @@ import { generateImageSDXL } from "../image/generateImageWithSDXL.mts"
 import { generateSeed } from "../../utils/generateSeed.mts"
 import { adminApiKey } from "../../config.mts"
 import { getNegativePrompt, getPositivePrompt } from "../../utils/promptUtilities.mts"
+import { cropBase64Video } from "../../ffmpeg/cropBase64Video.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_SVD_SECRET_TOKEN || ""}`
 
 // this generates a base64 video
 export const generateVideoWithSVD = async ({
   prompt,
+  orientation,
+  projection,
+  width,
+  height,
   lora = "",
-  style = ""
+  style = "",
 }: VideoGenerationParams): Promise<string> => {
   
   const app = await client("jbilcke-hf/stable-video-diffusion", {
@@ -22,6 +27,11 @@ export const generateVideoWithSVD = async ({
 
   const videoSeed = generateSeed()
   const imageSeed = generateSeed()
+
+  // console.log({ width, height })
+
+  const widthForSVD = 1024
+  const heightForSVD = 576
 
   const positivePrompt = getPositivePrompt([
     style,
@@ -38,26 +48,41 @@ export const generateVideoWithSVD = async ({
       positivePrompt,
       negativePrompt,
       seed: imageSeed,
-      width: 1024,
-      height: 576, // <-- important, to improve alignment with SVD
+      width: widthForSVD,
+      height: heightForSVD,
       nbSteps: 70,
       guidanceScale: 8,
     })
 
+    /*
+    console.log("generated an image with:", {
+      lora,
+      positivePrompt,
+      negativePrompt,
+      seed: imageSeed,
+      width: widthForSVD,
+      height: heightForSVD,
+      nbSteps: 70,
+      guidanceScale: 8,
+    })
+    */
    
     // console.log(`calling SVD..`)
 
+  
     /*
     console.log(`sending POST to api.predict /video with params:`, {
       data: [
+        "<hidden>", //accessToken.slice(0, 3) + "...", // string  in 'Secret Token' Textbox component
         image.slice(0, 80), 	// blob in 'Upload your image' Image component		
         videoSeed, // number (numeric value between 0 and 9223372036854775807) in 'Seed' Slider component		
-        50, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component		
+        80, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component		
         8, // number (numeric value between 5 and 30) in 'Frames per second' Slider component		
-        accessToken.slice(0, 3) + "...", // string  in 'Secret Token' Textbox component
+
       ],
     })
     */
+  
 
     const res = await app.predict("/run", [
       accessToken, // string  in 'Secret Token' Textbox component
@@ -66,7 +91,7 @@ export const generateVideoWithSVD = async ({
 
       // tried 117 but it seems a bit too "shaky"
       // so let's try 90
-      90, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component
+      80, // number (numeric value between 1 and 255) in 'Motion bucket id' Slider component
     
       8, // number (numeric value between 5 and 30) in 'Frames per second' Slider component		
     ]) as { data: string[] }
@@ -77,7 +102,22 @@ export const generateVideoWithSVD = async ({
       throw new Error(`invalid response (no content)`)
     }
     
-    return addBase64HeaderToMp4(base64Content)
+    const base64Video = addBase64HeaderToMp4(base64Content)
+
+    // we need to cut into the video
+    if (width < widthForSVD || height < heightForSVD) {
+      const croppedBase64Content = await cropBase64Video({
+        base64Video,
+        width,
+        height
+      })
+
+      const croppedBase64Video = addBase64HeaderToMp4(croppedBase64Content)
+
+      return croppedBase64Video
+    }
+
+    return base64Video
   } catch (err) {
     console.error(`failed to call the SVD API:`)
     console.error(err)

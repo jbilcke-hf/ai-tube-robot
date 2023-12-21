@@ -1,4 +1,4 @@
-import { keepVideoInQueue, nbMaxScenes, nbMaxShots, skipThumbnailGeneration, skipUpload } from "./config.mts"
+import { keepVideoInQueue, nbMaxScenes, nbMaxShots, skipThumbnailGeneration, skipUpload, skipVideoInterpolation } from "./config.mts"
 import { GeneratedScene, StoryLine, VideoInfo } from "../types.mts"
 import { concatenateAudio } from "./ffmpeg/concatenateAudio.mts"
 import { concatenateVideos } from "./ffmpeg/concatenateVideos.mts"
@@ -19,6 +19,8 @@ import { uploadVideoThumbnail } from "./huggingface/setters/uploadVideoThumbnail
 import { getMediaInfo } from "./ffmpeg/getMediaInfo.mts"
 import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
 import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
+import { interpolateVideoToURL } from "./generators/video/interpolateVideoToURL.mts"
+import { downloadMp4ToBase64 } from "./huggingface/getters/downloadMp4ToBase64.mts"
 
 
 export async function processQueue(): Promise<number> {
@@ -43,7 +45,7 @@ export async function processQueue(): Promise<number> {
     if (!skipThumbnailGeneration) {
       console.log(`  |- generating a catchy thumbnail..`)
 
-      const thumbnailBase64 = await generateVideoThumbnail({ video })
+      const thumbnailBase64 = await generateVideoThumbnail(video)
 
       console.log(`  |- uploading the catchy thumbnail..`)
 
@@ -157,11 +159,30 @@ export async function processQueue(): Promise<number> {
         // we could also generate an image, but no human is going to curate it,
         // so let's just generate things blindly
         
-        const base64Video = await generateVideo(prompt, video)
+        let base64Video = await generateVideo(prompt, video)
         
         if (!base64Video) {
           console.log(`      | '- failed to generate a video snippet, skipping..`)
           continue
+        }
+
+        if (!skipVideoInterpolation) {
+          try {
+            const remoteInterpolatedVideo = await interpolateVideoToURL(base64Video)
+            
+            const interpolatedBase64Video = await downloadMp4ToBase64({
+              urlToMp4: remoteInterpolatedVideo
+            })
+
+            if (interpolatedBase64Video.length < 100) {
+              throw new Error("base64 string is too short to be valid, aborting")
+            }
+            base64Video = interpolatedBase64Video
+          } catch (err) {
+            console.log(`      | '- failed to interpolate a video snippet, skipping..`)
+            base64Video = ""
+            continue
+          }
         }
 
         microVideoChunksBase64.push(base64Video)

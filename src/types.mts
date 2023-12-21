@@ -256,6 +256,9 @@ export type VideoRequest = {
    */
   id: string
 
+  // skip generation (mostly used for debugging)
+  // skip?: boolean
+
   /**
    * Human readable title for the video
    */
@@ -347,6 +350,10 @@ export type VideoOrientation =
   | "portrait"
   | "landscape"
   | "square"
+
+export type VideoProjection =
+  | "cartesian" // this is the default
+  | "equirectangular"
 
 export type VideoInfo = {
   /**
@@ -472,12 +479,21 @@ export type VideoInfo = {
    * General video aspect ratio
    */
   orientation: VideoOrientation
+
+  /**
+   * Video projection (cartesian by default)
+   */
+  projection: VideoProjection
 }
 
 export type VideoGenerationParams = {
   prompt: string
   lora?: string
   style?: string
+  orientation: VideoOrientation
+  projection: VideoProjection
+  width: number
+  height: number
 }
 
 export type MusicGenerationParams = {

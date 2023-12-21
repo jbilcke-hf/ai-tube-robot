@@ -4,7 +4,7 @@ import { defaultVideoOrientation } from "../config.mts"
 export function parseVideoOrientation(text: any, defaultToUse?: VideoOrientation): VideoOrientation {
   const rawOrientationString = `${text || ""}`.trim().toLowerCase()
 
-  let orientation: VideoOrientation = defaultToUse || defaultVideoOrientation
+  let orientation: VideoOrientation = defaultToUse || (defaultVideoOrientation || "landscape")
 
   if (
     rawOrientationString === "landscape" || 

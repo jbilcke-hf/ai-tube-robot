@@ -2,7 +2,19 @@ import { SDXLModel } from "../../../types.mts"
 
 
 export const aiClipFactoryModels: SDXLModel[] = [
-  {
+    // TODO: add my own sdxl-panorama model
+    // but it uses textual inversion, so needs some work
+    {
+    "image": "",
+    "title": "360Redmond",
+    "repo": "artificialguybr/360Redmond",
+    "trigger_word": "360 view",
+    "weights": "View360.safetensors",
+    "is_compatible": true,
+    "likes": 0,
+    "downloads": 0
+    },
+    {
     "image": "https://jbilcke-hf-ai-clip-factory.hf.space/images/models/sdxl-starfield.jpg",
     "title": "sdxl-starfield",
     "repo": "jbilcke-hf/sdxl-starfield",

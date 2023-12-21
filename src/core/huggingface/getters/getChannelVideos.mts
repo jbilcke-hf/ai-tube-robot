@@ -2,7 +2,7 @@ import { adminApiKey } from "../../config.mts"
 import { ChannelInfo, VideoInfo, VideoStatus } from "../../../types.mts"
 import { getVideoIndex } from "./getVideoIndex.mts"
 import { getVideoRequestsFromChannel } from "./getVideoRequestsFromChannel.mts"
-import { orientationToWidthHeight } from "../utils/orientationToWidthHeight.mts"
+import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
 
 // return 
 export async function getChannelVideos({
@@ -53,8 +53,11 @@ export async function getChannelVideos({
         tags: v.tags,
         channel,
         duration: v.duration || 0,
-        orientation: v.orientation,
-        ...orientationToWidthHeight(v.orientation),
+        ...computeOrientationProjectionWidthHeight({
+          lora: v.lora,
+          orientation: v.orientation,
+          // projection, // <- will be extrapolated from the LoRA for now
+        })
       }
 
       if (queued[v.id]) {

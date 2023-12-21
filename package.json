@@ -30,6 +30,7 @@
     "markdown-yaml-metadata-parser": "^3.0.0",
     "node-fetch": "^3.3.1",
     "puppeteer": "^21.6.1",
+    "replicate": "^0.25.2",
     "sharp": "^0.33.0",
     "temp-dir": "^3.0.0",
     "ts-node": "^10.9.1",

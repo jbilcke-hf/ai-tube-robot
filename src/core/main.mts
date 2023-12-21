@@ -6,6 +6,10 @@ import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
 import { downloadMp4 } from "./huggingface/getters/downloadMp4.mts"
 import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
 import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
+import { generateVideo } from "./generators/video/generateVideo.mts"
+import { generateVideoWithSVD } from "./generators/video/generateVideoWithSVD.mts"
+import { interpolateVideoToURL } from "./generators/video/interpolateVideoToURL.mts"
+import { upscaleVideoToURL } from "./generators/video/upscaleVideoToURL.mts"
 
 /*
 import { addTextToVideo } from "./ffmpeg/addTextToVideo.mts"
@@ -70,8 +74,35 @@ export const main = async () => {
 }
 */
 
+/*
+
 export const main = async () => {
-  let delayInSeconds = 5 * 60 // let's check every 5 minutes
+  try {
+    console.log("generating a video..")
+    const videoBase64 = await generateVideoWithSVD({
+      prompt: "photo of a funny cat",
+      orientation: "landscape",
+      projection: "cartesian",
+      width: 1024,
+      height: 576,
+    })
+
+    console.log("generated a video!")
+    // video interpolation might have some trouble at high resolution,
+    // so we do it before
+    const interpolatedVideoUrl = await interpolateVideoToURL(videoBase64)
+    console.log("interpolatedVideoUrl:", interpolatedVideoUrl)
+    
+    // const upscaledVideoUrl = await upscaleVideoToURL(interpolatedVideoUrl)
+    // console.log("upscaledVideoUrl:", upscaledVideoUrl)
+  } catch (err) {
+    console.log("failed to do so!")
+  }
+}
+*/
+
+export const main = async () => {
+  let delayInSeconds = 15 * 60 // let's check every 5 minutes
 
   // note: this is not an interval, because we are always waiting for current job
   // execution before starting something new

@@ -1,6 +1,7 @@
 
 import { getValidNumber } from "../../parsers/getValidNumber.mts"
 import { adminApiKey } from "../../config.mts"
+import { generateSeed } from "../../utils/generateSeed.mts";
 
 export async function generateImageSDXL(options: {
   positivePrompt: string;
@@ -15,7 +16,7 @@ export async function generateImageSDXL(options: {
 }): Promise<string> {
 
   const positivePrompt = [
-    "beautiful",
+    "beautiful photo",
     // "intricate details",
     options?.positivePrompt || "",
     "award winning",
@@ -32,7 +33,10 @@ export async function generateImageSDXL(options: {
     num_inference_steps: getValidNumber(options.nbSteps, 1, 100, 50),
     negative_prompt: options?.negativePrompt || "",
     guidance_scale: getValidNumber(options.guidanceScale, 0, 20, 8),
-    // seed: options?.seed || generateSeed(),
+
+    // apparently we were using the same seed since the beginning.. bummer!
+    seed: options?.seed || generateSeed(),
+
     width: getValidNumber(options.width, 256, 1024, 1024),
     height: getValidNumber(options.height, 256, 1024, 1024),
   }

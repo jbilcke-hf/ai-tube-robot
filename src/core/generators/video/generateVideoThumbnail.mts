@@ -4,18 +4,13 @@ import { generateSeed } from "../../utils/generateSeed.mts";
 import { getVideoLoraAndStyle } from "../../huggingface/utils/getVideoLoraAndStyle.mts";
 import { sleep } from "../../utils/sleep.mts";
 
-export async function generateVideoThumbnail({
-  video,
-  width = 1024,
-  height = 576,
-}: {
-  video: VideoInfo
-  width?: number
-  height?: number
-}): Promise<string> {
+export async function generateVideoThumbnail(video: VideoInfo): Promise<string> {
 
   const { lora, style } = await getVideoLoraAndStyle(video)
-  
+
+  let width = 1024
+  let height = 576
+
   const imageParams = {
     positivePrompt: [
       `photo of a youtuber`,

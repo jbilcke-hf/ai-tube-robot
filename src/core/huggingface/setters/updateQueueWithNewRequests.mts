@@ -7,7 +7,7 @@ import { getVideoRequestsFromChannel } from "../getters/getVideoRequestsFromChan
 import { updateVideoIndex } from "./updateVideoIndex.mts"
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { getVideoIndex } from "../getters/getVideoIndex.mts"
-import { orientationToWidthHeight } from "../utils/orientationToWidthHeight.mts"
+import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
 
 export async function updateQueueWithNewRequests(apiKey: string, optionalChannel?: ChannelInfo): Promise<number> {
   const isAdmin = apiKey === adminApiKey
@@ -75,8 +75,11 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
         tags: videoRequest.tags,
         channel,
         duration: videoRequest.duration || 0,
-        orientation: videoRequest.orientation,
-        ...orientationToWidthHeight(videoRequest.orientation),
+        ...computeOrientationProjectionWidthHeight({
+          lora: videoRequest.lora,
+          orientation: videoRequest.orientation,
+          // projection, // <- will be extrapolated from the LoRA for now
+        }),
       }
 
       videos[video.id] = video
