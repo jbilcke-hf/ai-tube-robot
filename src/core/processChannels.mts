@@ -10,6 +10,7 @@ import { isHighPriorityChannel } from "./auth/isHighPriorityChannel.mts"
 import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
 import { getChannelRating } from "./auth/getChannelRating.mts"
 import { computeOrientationProjectionWidthHeight } from "./huggingface/utils/computeOrientationProjectionWidthHeight.mts"
+import { getChannelIndex } from "./huggingface/getters/getChannelIndex.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
@@ -18,14 +19,14 @@ export async function processChannels(): Promise<number> {
   const queuedVideos = await getVideoIndex({ status: "queued", renewCache: true })
   const publishedVideos = await getVideoIndex({ status: "published", renewCache: true })
   const generatingVideos = await getVideoIndex({ status: "generating", renewCache: true })
+  const indexedChannels = await getChannelIndex({ renewCache: true })
 
   await sleep(2000)
 
   console.log("processChannels(): checking the Hugging Face platform for AI Tube channels")
   
-  let channels = await getChannels({})
 
-  const channelsPrevious = JSON.stringify(channels)
+  let channels = await getChannels({})
 
   const nbTotalChannels = channels.length
 
@@ -42,17 +43,20 @@ export async function processChannels(): Promise<number> {
   } are compromised`)
 
 
-  console.log(`processChannels(): updating the channel index..`)
+  console.log(`processChannels(): checking if channel index needs to be updated..`)
 
 
-  const channelsNow = JSON.stringify(channels)
+  const channelsBefore = JSON.stringify(Object.values(indexedChannels).sort((a, b) => a.id.localeCompare(b.id)))
 
-  if (channelsPrevious !== channelsNow) {
-    // we update the channel index
+  const channelsNow = JSON.stringify(channels.sort((a, b) => a.id.localeCompare(b.id)))
+
+  if (channelsBefore !== channelsNow) {
+    console.log("processChannels(): channel indew needs to be updated..")
     await updateChannelIndex(channels)
-    
-
     console.log(`processChannels(): channel index updated!`)
+  } else {
+    console.log(`processChannels(): channel index is already up to date!`)
+
   }
 
   if (skipLowPriorityAccounts) {
