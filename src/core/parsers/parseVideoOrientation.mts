@@ -15,7 +15,8 @@ export function parseVideoOrientation(text: any, defaultToUse?: VideoOrientation
 
   if (
     rawOrientationString === "portrait" || 
-    rawOrientationString === "vertical"
+    rawOrientationString === "vertical" ||
+    rawOrientationString === "mobile"
   ) {
     orientation = "portrait"
   }
