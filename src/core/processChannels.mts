@@ -77,14 +77,14 @@ export async function processChannels(): Promise<number> {
     
     await sleep(500)
 
-    console.log(`scanning channel "${channel.datasetName}" by @${channel.datasetUser}`)
-    
     const videosRequests = await getVideoRequestsFromChannel({
       channel,
       renewCache: true,
       neverThrow: true
     })
   
+    console.log(`scanned channel "${channel.datasetName}" by @${channel.datasetUser} (found ${videosRequests.length} videos)`)
+    
     for (const videoRequest of videosRequests) {
 
       // this is a protection against attempts to corrupt our database

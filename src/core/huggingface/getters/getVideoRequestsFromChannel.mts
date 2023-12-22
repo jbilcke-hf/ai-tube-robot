@@ -43,6 +43,7 @@ export async function getVideoRequestsFromChannel({
         : undefined
     })) {
 
+      const filePath = file.path.toLowerCase().trim()
       // TODO we should add some safety mechanisms here:
       // skip lists of files that are too long
       // skip files that are too big
@@ -50,19 +51,20 @@ export async function getVideoRequestsFromChannel({
 
       // console.log("file.path:", file.path)
       /// { type, oid, size, path }
-      if (file.path === "README.md") {
+      if (filePath === "readme.md") {
         // console.log("found the README")
         // TODO: read this readme to extract channel information
 
-      } else if (file.path.startsWith("prompt_") && file.path.endsWith(".md")) {
+      } else if (filePath.startsWith("prompt_") && filePath.endsWith(".md")) {
         
-        const id = parsePromptFileName(file.path)
+        const id = parsePromptFileName(filePath)
 
+        // console.log("id:", id)
         if (!id) { continue }
 
         const rawMarkdown = await downloadFileAsText({
           repo,
-          path: file.path,
+          path: file.path, // be sure to use the original file.path (with capitalization if any) and not filePath
           apiKey,
           renewCache,
           neverThrow: true,
@@ -74,9 +76,19 @@ export async function getVideoRequestsFromChannel({
         }
 
         const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice, orientation } = parseDatasetPrompt(rawMarkdown, channel)
+        
+        if (!title) {
+          console.log("dataset prompt file is unparseable: the title is missing")
+          continue
+        }
 
-        if (!title || !description || !prompt) {
-          // console.log("dataset prompt is incomplete or unparseable")
+        if (!description) {
+          //console.log("dataset prompt file is unparseable: the description is missing")
+          // continue
+        }
+
+        if (!prompt) {
+          console.log("dataset prompt file is unparseable: the prompt is missing")
           continue
         }
 
@@ -85,14 +97,14 @@ export async function getVideoRequestsFromChannel({
         let thumbnailUrl =
           thumbnail.startsWith("http")
             ? thumbnail
-            : (thumbnail.endsWith(".jpg") || thumbnail.endsWith(".jpeg"))
+            : (thumbnail.endsWith(".webp") || thumbnail.endsWith(".jpg") || thumbnail.endsWith(".jpeg"))
             ? `https://huggingface.co/${repo}/resolve/main/${thumbnail}`
             : ""
 
         const video: VideoRequest = {
           id,
           label: title,
-          description,
+          description: description || title,
           prompt,
           thumbnailUrl,
           model,
@@ -113,7 +125,7 @@ export async function getVideoRequestsFromChannel({
 
         videos[id] = video
 
-      } else if (file.path.endsWith(".mp4")) {
+      } else if (filePath.endsWith(".mp4")) {
         // console.log("found a video:", file.path)
       }
     }
