@@ -36,5 +36,5 @@ export async function uploadMp3({
     commitTitle: "[robot] Add new MP3 audio file",
   })
 
-  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp3`
+  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/${uploadFilePath}`
 }

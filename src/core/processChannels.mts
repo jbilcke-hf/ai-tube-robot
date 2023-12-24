@@ -51,7 +51,7 @@ export async function processChannels(): Promise<number> {
   const channelsNow = JSON.stringify(channels.sort((a, b) => a.id.localeCompare(b.id)))
 
   if (channelsBefore !== channelsNow) {
-    console.log("processChannels(): channel indew needs to be updated..")
+    console.log("processChannels(): channel index needs to be updated..")
     await updateChannelIndex(channels)
     console.log(`processChannels(): channel index updated!`)
   } else {

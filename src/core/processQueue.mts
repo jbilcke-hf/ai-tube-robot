@@ -21,6 +21,7 @@ import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
 import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
 import { interpolateVideoToURL } from "./generators/video/interpolateVideoToURL.mts"
 import { downloadMp4ToBase64 } from "./huggingface/getters/downloadMp4ToBase64.mts"
+import { interpolateVideoToBase64 } from "./generators/video/interpolateVideoToBase64.mts"
 
 
 export async function processQueue(): Promise<number> {
@@ -168,20 +169,38 @@ export async function processQueue(): Promise<number> {
 
         if (!skipVideoInterpolation) {
           try {
-            const remoteInterpolatedVideo = await interpolateVideoToURL(base64Video)
-            
-            const interpolatedBase64Video = await downloadMp4ToBase64({
-              urlToMp4: remoteInterpolatedVideo
-            })
 
-            if (interpolatedBase64Video.length < 100) {
+            // this is the legacy way, made using Replicate
+            // but let's avoid having any "note de frais" 
+            // and use in-house products for that
+
+            // const remoteInterpolatedVideo = await interpolateVideoToURL(base64Video)
+            // const interpolatedBase64Video = await downloadMp4ToBase64({
+            //  urlToMp4: remoteInterpolatedVideo
+            // })
+
+            // 4 iterations with 64 seems like a good numbers,
+            // the SVD video will last about 6.6 seconds
+            const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 64)
+
+            if (interpolatedBase64Video.length < 120) {
               throw new Error("base64 string is too short to be valid, aborting")
             }
             base64Video = interpolatedBase64Video
           } catch (err) {
-            console.log(`      | '- failed to interpolate a video snippet, skipping..`)
-            base64Video = ""
-            continue
+            try {
+              // we wait about 1 minute before trying again
+              await sleep(60000)
+              const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 64)
+
+              if (interpolatedBase64Video.length < 120) {
+                throw new Error("base64 string is too short to be valid, aborting")
+              }
+            } catch (err) {
+              console.log(`      | '- failed to interpolate a video snippet (this sucks too much, so we discard the whole thing)`)
+              base64Video = ""
+              continue
+            }
           }
         }
 

@@ -3,12 +3,14 @@ import { addBase64HeaderToMp4 } from "../../utils/addBase64HeaderToMp4.mts"
 const gradioApi = `${process.env.INTERPOLATION_API_GRADIO_URL || ""}`
 const accessToken = `${process.env.AUTH_INTERPOLATION_API_GRADIO_TOKEN || ""}`
 
-export async function interpolateVideoToBase64(assetUrl: string): Promise<string> {
+export async function interpolateVideoToBase64(
+  assetUrl: string,
+  interpolationSteps: number, // 2 = 4,
+  nbFramesPerSecond: number // 30 = 60
+): Promise<string> {
   // we need to remove this header perhaps
   const videoInBase64 = assetUrl.split("data:video/mp4;base64,").pop()
 
-  const interpolationSteps = 2
-  const nbFramesPerSecond = 32
 
   const res = await fetch(gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict", {
     method: "POST",

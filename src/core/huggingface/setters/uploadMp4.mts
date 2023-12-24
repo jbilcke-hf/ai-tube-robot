@@ -9,9 +9,11 @@ import { adminCredentials, adminUsername } from "../../config.mts"
 export async function uploadMp4({
   video,
   filePath,
+  suffix,
 }: {
   video: VideoInfo
   filePath: string
+  suffix?: string
 }): Promise<string> {
   if (!filePath) {
     throw new Error(`the filePath is required`)
@@ -24,7 +26,7 @@ export async function uploadMp4({
   const buffer = await fs.readFile(filePath)
   const blob = new Blob([buffer])
 
-  const uploadFilePath = `videos/${video.id}.mp4`
+  const uploadFilePath = `videos/${video.id}${suffix}.mp4`
 
   await uploadFile({
 	  credentials: adminCredentials,
@@ -36,5 +38,5 @@ export async function uploadMp4({
     commitTitle: "[robot] Add new MP4 video file",
   })
 
-  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/videos/${video.id}.mp4`
+  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/${uploadFilePath}`
 }

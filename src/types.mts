@@ -616,3 +616,8 @@ export type GeneratedScene = {
   filePath: string // path to a tmp file (ideally)
 }
 
+export type UpscaleImageParams = {
+  imageAsBase64: string
+  prompt?: string
+  scaleFactor?: number
+}
