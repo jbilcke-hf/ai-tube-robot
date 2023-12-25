@@ -188,6 +188,7 @@ export async function processQueue(): Promise<number> {
             }
             base64Video = interpolatedBase64Video
           } catch (err) {
+            console.error(err)
             try {
               // we wait about 1 minute before trying again
               await sleep(60000)
@@ -196,7 +197,9 @@ export async function processQueue(): Promise<number> {
               if (interpolatedBase64Video.length < 120) {
                 throw new Error("base64 string is too short to be valid, aborting")
               }
+              base64Video = interpolatedBase64Video
             } catch (err) {
+              console.error(err)
               console.log(`      | '- failed to interpolate a video snippet (this sucks too much, so we discard the whole thing)`)
               base64Video = ""
               continue
