@@ -5,11 +5,6 @@ import { processQueue } from "./processQueue.mts"
 import { processUpscaling } from "./processUpscaling.mts"
 
 export const main = async () => {
-
-  if (robotRole === "UPSCALE") {
-    await processUpscaling()
-    return
-  }
   
   let delayInSeconds = 15 * 60 // let's check every 5 minutes
 
@@ -27,23 +22,27 @@ export const main = async () => {
     //  console.log("main(): locking, going to process tasks..")
     lock.isLocked = true
 
-    if (!skipProcessingChannels) {
-      try {
-        let nbNewlyEnqueued = await processChannels()
-        console.log(`main(): added ${nbNewlyEnqueued} new items to queue`)
-      } catch (err) {
-        console.log(`main(): failed to process channels: ${err}`)
+    if (robotRole === "UPSCALE") {
+      await processUpscaling()
+    } else {
+      if (!skipProcessingChannels) {
+        try {
+          let nbNewlyEnqueued = await processChannels()
+          console.log(`main(): added ${nbNewlyEnqueued} new items to queue`)
+        } catch (err) {
+          console.log(`main(): failed to process channels: ${err}`)
+        }
+
+        console.log("\n---------------------------------------------------\n")
       }
 
-      console.log("\n---------------------------------------------------\n")
-    }
-
-    if (!skipProcessingQueue) {
-      try {
-        let nbProcessed = await processQueue()
-        console.log(`main(): processed ${nbProcessed} queued items`)
-      } catch (err) {
-        console.log(`main(): failed to process: ${err}`)
+      if (!skipProcessingQueue) {
+        try {
+          let nbProcessed = await processQueue()
+          console.log(`main(): processed ${nbProcessed} queued items`)
+        } catch (err) {
+          console.log(`main(): failed to process: ${err}`)
+        }
       }
     }
     // console.log("\n---------------------------------------------------\n")
