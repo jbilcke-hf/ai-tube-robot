@@ -11,6 +11,13 @@ export async function interpolateVideoToBase64(
   // we need to remove this header perhaps
   const videoInBase64 = assetUrl.split("data:video/mp4;base64,").pop()
 
+  console.log("INVESTIGATION:", {
+    URL: gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict",
+    accessToken,
+    videoInBase64,
+    interpolationSteps,
+    nbFramesPerSecond
+  })
 
   const res = await fetch(gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict", {
     method: "POST",
