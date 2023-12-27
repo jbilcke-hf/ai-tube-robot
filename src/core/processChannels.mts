@@ -1,4 +1,4 @@
-import { enableRepublishing, skipLowPriorityAccounts } from "./config.mts"
+import { ignoreChangesMadeToVideoRequests, skipLowPriorityAccounts } from "./config.mts"
 import { VideoInfo } from "../types.mts"
 import { getChannels } from "./huggingface/getters/getChannels.mts"
 import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
@@ -103,14 +103,44 @@ export async function processChannels(): Promise<number> {
         continue
       }
       
-      if (!enableRepublishing) {
-        if (videoAlreadyPublished) {
+      if (videoAlreadyPublished && !ignoreChangesMadeToVideoRequests) {
+
+        // note: it is important to normalize the parameters first,
+        // because if the published contains different things that the request,
+        // then the video will be endlessly re-generated
+        // that is not necessarily an issue, it could be used to create a live stream of some sort 
+        // (but something more like on twitch, which only record the last session, not a "real" stream
+        // which would require a lot more processing power that what we have here)
+        const previousParameters = [
+          videoAlreadyPublished.label,
+          videoAlreadyPublished.lora,
+          videoAlreadyPublished.description,
+          videoAlreadyPublished.prompt,
+          videoAlreadyPublished.music,
+          videoAlreadyPublished.style
+        ].map(x => x.trim()).join("-------").toLowerCase()
+
+        const newParameters = [
+          videoRequest.label,
+          videoRequest.lora,
+          videoRequest.description,
+          videoRequest.prompt,
+          videoRequest.music,
+          videoRequest.style
+        ].map(x => x.trim()).join("-------").toLowerCase()
+
+        const videoParametersChanged = previousParameters !== newParameters
+
+        if (!videoParametersChanged) {
           // video is already published! skipping..
-          // console.log(`- video ${videoRequest.id} is already published, skipping it..`)
+          // console.log(`- video ${videoRequest.id} is already published but params didn't change, skipping it..`)
           continue
+        } else {
+          console.log(`- video ${videoRequest.id} has changed, so we re-generate it`)
         }
       }
 
+      continue
       if (generatingVideos[videoRequest.id]) {
         // video is already being generated! skipping..
         continue

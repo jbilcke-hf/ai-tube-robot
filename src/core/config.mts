@@ -42,15 +42,11 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 // by default (in production) they should be set to false,
 // but you can set them to true on your own machine
 
-// if set to true, a video that has already been published will be re-generated
-// be careful if you switch it to true!
-// the usecase for doing so is that if you want to upgrade ALL the videos of the
-// platform to a specific format or feature
-//
-// ATTENTION! if you enable it for a mass upgrade, you will want to set:
-// skipThumbnailGeneration = true
-// to avoid re-generating all the thumbnails (well, unless you WANT to regenerate them)
-export const enableRepublishing = false
+
+// by default, when someone changes their video request title, prompt etc..
+// then the video will be re-generated
+// this can be disabled by setting the following setting to "true"
+export const ignoreChangesMadeToVideoRequests = true
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development
@@ -62,10 +58,10 @@ export const skipThumbnailGeneration = false
 
 // set to something like 2 or 1 during debugging!
 // otherwise please pick a large value, such as 40
-export const nbMaxScenes = 1 // 45
+export const nbMaxScenes = 45
 
 // same here, pick a large value in production, and a small value to do a quick local test
-export const nbMaxShots = 1 // 45
+export const nbMaxShots = 45
 
 // set to true to not delete the temporary files
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files
