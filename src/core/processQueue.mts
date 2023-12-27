@@ -19,8 +19,6 @@ import { uploadVideoThumbnail } from "./huggingface/setters/uploadVideoThumbnail
 import { getMediaInfo } from "./ffmpeg/getMediaInfo.mts"
 import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
 import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
-import { interpolateVideoToURL } from "./generators/video/interpolateVideoToURL.mts"
-import { downloadMp4ToBase64 } from "./huggingface/getters/downloadMp4ToBase64.mts"
 import { interpolateVideoToBase64 } from "./generators/video/interpolateVideoToBase64.mts"
 
 
@@ -62,8 +60,7 @@ export async function processQueue(): Promise<number> {
     console.log(`  |- pushing new video metadata..`)
     await uploadVideoMeta({ video })
 
- 
-    // the use case for doing this is debugging
+    // we we will have multiple bots, we will want to move items from "queued" to "generating"
     if (!keepVideoInQueue) {
       delete queuedVideos[video.id]
       await updateVideoIndex({ status: "queued", videos: queuedVideos })
@@ -168,6 +165,12 @@ export async function processQueue(): Promise<number> {
         }
 
         if (!skipVideoInterpolation) {
+
+          // const nbFramesPerSecond = 60
+          // const slowdownFactor = 4
+          const nbFramesPerSecond = 30
+          const slowdownFactor = 3
+
           try {
 
             // this is the legacy way, made using Replicate
@@ -181,7 +184,7 @@ export async function processQueue(): Promise<number> {
 
             // 4 iterations with 64 seems like a good numbers,
             // the SVD video will last about 6.6 seconds
-            const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 60)
+            const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, slowdownFactor, nbFramesPerSecond)
 
             if (interpolatedBase64Video.length < 120) {
               throw new Error("base64 string is too short to be valid, aborting")
@@ -192,7 +195,7 @@ export async function processQueue(): Promise<number> {
             try {
               // we wait about 1 minute before trying again
               await sleep(60000)
-              const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 60)
+              const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, slowdownFactor, nbFramesPerSecond)
 
               if (interpolatedBase64Video.length < 120) {
                 throw new Error("base64 string is too short to be valid, aborting")

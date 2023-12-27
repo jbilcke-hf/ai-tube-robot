@@ -103,7 +103,8 @@ export async function processChannels(): Promise<number> {
         continue
       }
       
-      if (videoAlreadyPublished && !ignoreChangesMadeToVideoRequests) {
+      if (videoAlreadyPublished) {
+        // console.log("video is already published..")
 
         // note: it is important to normalize the parameters first,
         // because if the published contains different things that the request,
@@ -118,7 +119,7 @@ export async function processChannels(): Promise<number> {
           videoAlreadyPublished.prompt,
           videoAlreadyPublished.music,
           videoAlreadyPublished.style
-        ].map(x => x.trim()).join("-------").toLowerCase()
+        ].map(x => `${x || ""}`.trim()).join("-------").toLowerCase()
 
         const newParameters = [
           videoRequest.label,
@@ -127,58 +128,64 @@ export async function processChannels(): Promise<number> {
           videoRequest.prompt,
           videoRequest.music,
           videoRequest.style
-        ].map(x => x.trim()).join("-------").toLowerCase()
+        ].map(x => `${x || ""}`.trim()).join("-------").toLowerCase()
 
-        const videoParametersChanged = previousParameters !== newParameters
-
-        if (!videoParametersChanged) {
+        const videoParametersDidntChange = previousParameters === newParameters
+        
+        if (videoParametersDidntChange) {
           // video is already published! skipping..
-          // console.log(`- video ${videoRequest.id} is already published but params didn't change, skipping it..`)
+          // console.log(`- video ${videoRequest.id} is already published and params didn't change, skipping it..`)
           continue
         } else {
-          console.log(`- video ${videoRequest.id} has changed, so we re-generate it`)
+          if (ignoreChangesMadeToVideoRequests) {
+            // console.log(`- video ${videoRequest.id} is already published, params changed but server policy is to ignore changes, so.. we skip it`)
+            continue
+          } else {
+            // console.log(`- video ${videoRequest.id} is already published, but params changed, so we re-generate it`)
+          }
         }
       }
 
-      continue
       if (generatingVideos[videoRequest.id]) {
         // video is already being generated! skipping..
         continue
       }
 
-      if (!queuedVideos[videoRequest.id]) {
-        console.log(`adding video request ${videoRequest.id} to the queue`)
-
-        const newVideo: VideoInfo = {
-          id: videoRequest.id,
-          status: "queued",
-          label: videoRequest.label,
-          description: videoRequest.description,
-          prompt: videoRequest.prompt,
-          thumbnailUrl: videoRequest.thumbnailUrl, // will be generated in async
-          model: videoRequest.model,
-          lora: videoRequest.lora,
-          style: videoRequest.style,
-          voice: videoRequest.voice,
-          music: videoRequest.music,
-          assetUrl: "", // will be generated in async
-          numberOfViews: 0,
-          numberOfLikes: 0,
-          numberOfDislikes: 0,
-          updatedAt: new Date().toISOString(),
-          tags: videoRequest.tags,
-          channel,
-          duration: videoRequest.duration || 0,
-          ...computeOrientationProjectionWidthHeight({
-            lora: videoRequest.lora,
-            orientation: videoRequest.orientation,
-            // projection, // <- will be extrapolated from the LoRA for now
-          }),
-        }
-        queuedVideos[videoRequest.id] = newVideo
-
-        nbNewlyEnqueued += 1
+      if (queuedVideos[videoRequest.id]) {
+        // video is already queued, skipping..
+        continue
       }
+      console.log(`adding video request ${videoRequest.id} to the queue`)
+
+      const newVideo: VideoInfo = {
+        id: videoRequest.id,
+        status: "queued",
+        label: videoRequest.label,
+        description: videoRequest.description,
+        prompt: videoRequest.prompt,
+        thumbnailUrl: videoRequest.thumbnailUrl, // will be generated in async
+        model: videoRequest.model,
+        lora: videoRequest.lora,
+        style: videoRequest.style,
+        voice: videoRequest.voice,
+        music: videoRequest.music,
+        assetUrl: "", // will be generated in async
+        numberOfViews: 0,
+        numberOfLikes: 0,
+        numberOfDislikes: 0,
+        updatedAt: new Date().toISOString(),
+        tags: videoRequest.tags,
+        channel,
+        duration: videoRequest.duration || 0,
+        ...computeOrientationProjectionWidthHeight({
+          lora: videoRequest.lora,
+          orientation: videoRequest.orientation,
+          // projection, // <- will be extrapolated from the LoRA for now
+        }),
+      }
+      queuedVideos[videoRequest.id] = newVideo
+
+      nbNewlyEnqueued += 1
     }
 
     // this is the end goal, we want to be able to automatically generate videos
