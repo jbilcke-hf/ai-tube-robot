@@ -20,6 +20,8 @@ import { getMediaInfo } from "./ffmpeg/getMediaInfo.mts"
 import { convertMp4ToMp3 } from "./ffmpeg/convertMp4ToMp3.mts"
 import { uploadMp3 } from "./huggingface/setters/uploadMp3.mts"
 import { interpolateVideoToBase64 } from "./generators/video/interpolateVideoToBase64.mts"
+import { interpolateVideoToURL } from "./generators/video/interpolateVideoToURL.mts"
+import { downloadMp4ToBase64 } from "./huggingface/getters/downloadMp4ToBase64.mts"
 
 
 export async function processQueue(): Promise<number> {
@@ -177,10 +179,17 @@ export async function processQueue(): Promise<number> {
             // but let's avoid having any "note de frais" 
             // and use in-house products for that
 
-            // const remoteInterpolatedVideo = await interpolateVideoToURL(base64Video)
-            // const interpolatedBase64Video = await downloadMp4ToBase64({
-            //  urlToMp4: remoteInterpolatedVideo
-            // })
+
+            // edit: well actually..
+            // there is a proxy and/or networking issue on the Hugging Face cloud infrastructure,
+            // causing a lot of ETIMEDOUT errors
+            // I haven't identified the cause yet, but I need AI Tube to work today,
+            // so let's switch over to Replicate
+
+            const remoteInterpolatedVideo = await interpolateVideoToURL(base64Video)
+            const interpolatedBase64Video = await downloadMp4ToBase64({ urlToMp4: remoteInterpolatedVideo })
+           
+            /*
 
             // 4 iterations with 64 seems like a good numbers,
             // the SVD video will last about 6.6 seconds
@@ -188,7 +197,8 @@ export async function processQueue(): Promise<number> {
 
             if (interpolatedBase64Video.length < 120) {
               throw new Error("base64 string is too short to be valid, aborting")
-            }
+        
+            */
             base64Video = interpolatedBase64Video
           } catch (err) {
             console.error(err)
