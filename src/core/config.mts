@@ -62,10 +62,10 @@ export const skipThumbnailGeneration = false
 
 // set to something like 2 or 1 during debugging!
 // otherwise please pick a large value, such as 40
-export const nbMaxScenes = 45
+export const nbMaxScenes = 1 // 45
 
 // same here, pick a large value in production, and a small value to do a quick local test
-export const nbMaxShots = 45
+export const nbMaxShots = 1 // 45
 
 // set to true to not delete the temporary files
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files

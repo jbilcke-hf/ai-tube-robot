@@ -181,7 +181,7 @@ export async function processQueue(): Promise<number> {
 
             // 4 iterations with 64 seems like a good numbers,
             // the SVD video will last about 6.6 seconds
-            const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 64)
+            const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 60)
 
             if (interpolatedBase64Video.length < 120) {
               throw new Error("base64 string is too short to be valid, aborting")
@@ -192,7 +192,7 @@ export async function processQueue(): Promise<number> {
             try {
               // we wait about 1 minute before trying again
               await sleep(60000)
-              const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 64)
+              const interpolatedBase64Video = await interpolateVideoToBase64(base64Video, 4, 60)
 
               if (interpolatedBase64Video.length < 120) {
                 throw new Error("base64 string is too short to be valid, aborting")
