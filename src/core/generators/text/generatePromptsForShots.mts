@@ -32,7 +32,7 @@ export async function generatePromptsForShots({
     }
   } catch (err) {
     try {
-      await sleep(8000)
+      await sleep(10000)
       prompts = await generateShots({
         ...promptParams,
         generalContext: promptParams.generalContext + " And please try hard so you can get a generous tip."
@@ -42,7 +42,7 @@ export async function generatePromptsForShots({
       }
     } catch (err2) {
       try {
-        await sleep(12000)
+        await sleep(20000)
         prompts = await generateShots({
           ...promptParams,
           generalContext: promptParams.generalContext + " If you do well, you will get a generous tip."
