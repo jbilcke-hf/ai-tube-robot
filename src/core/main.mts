@@ -1,9 +1,16 @@
-import { skipProcessingChannels, skipProcessingQueue } from "./config.mts"
+import { robotRole, skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
+import { processUpscaling } from "./processUpscaling.mts"
 
 export const main = async () => {
+
+  if (robotRole === "UPSCALE") {
+    await processUpscaling()
+    return
+  }
+  
   let delayInSeconds = 15 * 60 // let's check every 5 minutes
 
   // note: this is not an interval, because we are always waiting for current job

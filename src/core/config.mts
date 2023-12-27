@@ -21,6 +21,13 @@ try {
 }
 
 
+export type RobotRole = "GENERATE" | "UPSCALE"
+export const robotRole = (
+  `${process.env.AI_TUBE_ROBOT_ROLE || "GENERATE"}` === "UPSCALE"
+  ? "UPSCALE"
+  : "GENERATE"
+) as RobotRole
+
 export const adminApiKey = `${process.env.ADMIN_HUGGING_FACE_API_TOKEN || ""}`
 export const adminUsername = `${process.env.ADMIN_HUGGING_FACE_USERNAME || ""}`
 
