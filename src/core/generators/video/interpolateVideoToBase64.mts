@@ -13,8 +13,8 @@ export async function interpolateVideoToBase64(
 
   console.log("INVESTIGATION:", {
     URL: gradioApi + (gradioApi.endsWith("/") ? "" : "/") + "api/predict",
-    accessToken,
-    videoInBase64,
+    // accessToken,
+    // videoInBase64,
     interpolationSteps,
     nbFramesPerSecond
   })
