@@ -21,7 +21,6 @@ export async function upscaleVideo({
   prompt: string
 }): Promise<string> {
 
-  /*
   const {
     outputDirPath, // we will have to delete this later
     outputFramesPaths,
@@ -57,10 +56,9 @@ export async function upscaleVideo({
     // break
   
   }
-  */
 
-  const outputDirPath = "./samples/frames"
-  const framesPerSecond = 64
+  // const outputDirPath = "./samples/frames"
+  // const framesPerSecond = 64
 
   const outputVideoPath = await createVideoFromFrames({
     inputFramesDirectory: outputDirPath,
@@ -80,7 +78,7 @@ export async function upscaleVideo({
     framesPerSecond,
   })
 
-  console.log("output: ", outputVideoPath)
+  // console.log("output: ", outputVideoPath)
 
   return outputVideoPath
 }
