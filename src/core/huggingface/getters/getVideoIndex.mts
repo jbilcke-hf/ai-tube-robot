@@ -1,6 +1,6 @@
-
-import { VideoInfo, VideoStatus } from "../../../types.mts"
 import { adminUsername } from "../../config.mts"
+import { VideoStatus } from "../../types/atoms.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function getVideoIndex({
   status,

@@ -2,8 +2,8 @@ import { Blob } from "buffer"
 
 import { uploadFile } from "@huggingface/hub"
 
-import { VideoInfo } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function uploadVideoMeta({
   video,

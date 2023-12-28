@@ -3,8 +3,8 @@ import { promises as fs } from "node:fs"
 
 import { uploadFile } from "@huggingface/hub"
 
-import { VideoInfo } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function uploadMp3({
   video,

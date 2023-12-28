@@ -1,9 +1,9 @@
 // we need to ability to search any dataset, so we use our own fork
 import { Credentials, listDatasets, whoAmI } from "../../../libraries/huggingface/hub/src/index.mts"
 
-import { ChannelInfo } from "../../../types.mts"
 import { adminCredentials } from "../../config.mts"
 import { parseChannel } from "../../parsers/parseChannel.mts"
+import { ChannelInfo } from "../../types/structures.mts"
 
 export async function getChannels(options: {
   channelId?: string

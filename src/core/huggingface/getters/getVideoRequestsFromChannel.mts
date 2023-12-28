@@ -1,5 +1,4 @@
 import { listFiles } from "../../../libraries/huggingface/hub/src/index.mts"
-import { ChannelInfo, VideoRequest } from "../../../types.mts"
 
 import { downloadFileAsText } from "../datasets/downloadFileAsText.mts"
 import { getCredentials } from "../../auth/getCredentials.mts"
@@ -7,6 +6,8 @@ import { parseDatasetPrompt } from "../../parsers/parseDatasetPrompt.mts"
 import { parsePromptFileName } from "../../parsers/parsePromptFileName.mts"
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
+import { ChannelInfo } from "../../types/structures.mts"
+import { VideoRequest } from "../../types/requests.mts"
 
 /**
  * Return all the videos requests created by a user on their channel

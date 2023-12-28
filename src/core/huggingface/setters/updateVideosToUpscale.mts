@@ -1,9 +1,9 @@
 
 import { Blob } from "buffer"
 
-import { VideoInfo, VideoStatus } from "../../../types.mts"
 import { uploadFile } from "@huggingface/hub"
 import { adminCredentials, adminUsername } from "../../config.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function updateVideosToUpscale({
   videos

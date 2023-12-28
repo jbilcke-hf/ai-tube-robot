@@ -4,9 +4,9 @@ import express from "express"
 
 import { main } from "./core/main.mts"
 
-import { UpdateQueueRequest, UpdateQueueResponse } from "./types.mts"
 import { updateQueueWithNewRequests } from "./core/huggingface/setters/updateQueueWithNewRequests.mts"
 import { getCssStyle } from "./core/utils/getCssStyle.mts"
+import { UpdateQueueRequest, UpdateQueueResponse } from "./core/types/requests.mts"
 
 const app = express()
 const port = 7860

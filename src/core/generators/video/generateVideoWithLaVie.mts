@@ -1,11 +1,10 @@
 
 import { client } from "@gradio/client"
 
-import { generateSeed } from "../../utils/generateSeed.mts"
 import { addBase64HeaderToMp4 } from "../../utils/addBase64HeaderToMp4.mts"
-import { VideoGenerationParams } from "../../../types.mts"
 import { adminApiKey } from "../../config.mts"
 import { getPositivePrompt } from "../../utils/promptUtilities.mts"
+import { VideoGenerationParams } from "../../types/video.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_LAVIE_SECRET_TOKEN || ""}`
 

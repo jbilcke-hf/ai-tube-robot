@@ -1,4 +1,4 @@
-import { SDXLModel } from "../../../types.mts"
+import { SDXLModel } from "../../types/structures.mts"
 import { aiClipFactoryModels, loraTheExplorerModels } from "./hardcodedSDXLModels.mts"
 
 export async function getSDXLModels(): Promise<SDXLModel[]> {

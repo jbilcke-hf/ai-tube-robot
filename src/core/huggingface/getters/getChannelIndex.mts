@@ -1,6 +1,6 @@
 
-import { ChannelInfo } from "../../../types.mts"
 import { adminUsername } from "../../config.mts"
+import { ChannelInfo } from "../../types/structures.mts"
 
 export async function getChannelIndex({
   renewCache = true,

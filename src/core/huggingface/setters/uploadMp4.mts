@@ -3,13 +3,13 @@ import { promises as fs } from "node:fs"
 
 import { uploadFile } from "@huggingface/hub"
 
-import { VideoInfo } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function uploadMp4({
   video,
   filePath,
-  suffix,
+  suffix = "",
 }: {
   video: VideoInfo
   filePath: string
@@ -26,7 +26,7 @@ export async function uploadMp4({
   const buffer = await fs.readFile(filePath)
   const blob = new Blob([buffer])
 
-  const uploadFilePath = `videos/${video.id}${suffix}.mp4`
+  const uploadFilePath = `videos/${video.id}${suffix || ""}.mp4`
 
   await uploadFile({
 	  credentials: adminCredentials,

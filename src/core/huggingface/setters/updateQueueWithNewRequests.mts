@@ -1,13 +1,13 @@
 import { whoAmI, Credentials } from "@huggingface/hub"
 import { adminApiKey } from "../../config.mts"
 import { getChannels } from "../getters/getChannels.mts"
-import { ChannelInfo, VideoInfo } from "../../../types.mts"
 import { getVideoRequestsFromChannel } from "../getters/getVideoRequestsFromChannel.mts"
 
 import { updateVideoIndex } from "./updateVideoIndex.mts"
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { getVideoIndex } from "../getters/getVideoIndex.mts"
 import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
+import { ChannelInfo } from "../../types/structures.mts"
 
 export async function updateQueueWithNewRequests(apiKey: string, optionalChannel?: ChannelInfo): Promise<number> {
   const isAdmin = apiKey === adminApiKey

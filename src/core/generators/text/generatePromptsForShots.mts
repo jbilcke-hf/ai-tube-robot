@@ -1,7 +1,8 @@
 
-import { GeneratedScene, VideoInfo } from "../../../types.mts"
 import { generateShots } from "./generateShots.mts"
 import { sleep } from "../../utils/sleep.mts"
+import { VideoInfo } from "../../types/video.mts"
+import { GeneratedScene } from "../../types/structures.mts"
 
 export async function generatePromptsForShots({
   video,

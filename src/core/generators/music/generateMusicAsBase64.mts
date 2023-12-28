@@ -1,6 +1,7 @@
-import { VideoInfo } from "../../../types.mts"
+
 import { generateMusicWithMusicgen } from "./generateMusicWithMusicgen.mts"
 import { sleep } from "../../utils/sleep.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 // apparently if we ask to generate like 4 minutes of audio, it crashes
 const maxAudioDurationInSec = 120

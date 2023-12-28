@@ -1,4 +1,4 @@
-import { SDXLModel } from "../../../types.mts"
+import { SDXLModel } from "../../types/structures.mts"
 
 
 export const aiClipFactoryModels: SDXLModel[] = [

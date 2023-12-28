@@ -1,7 +1,7 @@
 import { HfInference } from "@huggingface/inference"
 
 import { adminApiKey } from "../../config.mts"
-import { UpscaleImageParams } from "../../../types.mts"
+import { UpscaleImageParams } from "../../types/structures.mts"
 
 const hf = new HfInference(adminApiKey)
 

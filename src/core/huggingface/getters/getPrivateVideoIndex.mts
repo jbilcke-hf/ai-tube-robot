@@ -2,8 +2,9 @@
 
 import { Credentials, downloadFile, uploadFile, whoAmI } from "@huggingface/hub"
 
-import { VideoInfo, VideoStatus } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
+import { VideoStatus } from "../../types/atoms.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 // this function get an index using the huggingface API
 // it is not very useful for us as plaintext file downloads 

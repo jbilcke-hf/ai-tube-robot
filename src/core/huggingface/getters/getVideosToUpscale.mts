@@ -1,6 +1,6 @@
 
-import { VideoInfo } from "../../../types.mts"
 import { adminUsername } from "../../config.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 // this is mostly a helper
 export async function getVideosToUpscale({

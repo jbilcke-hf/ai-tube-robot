@@ -1,6 +1,5 @@
 import { client } from "@gradio/client"
 
-import { VideoGenerationParams } from "../../../types.mts"
 import { addBase64HeaderToMp4 } from "../../utils/addBase64HeaderToMp4.mts"
 import { generateImageSDXL } from "../image/generateImageWithSDXL.mts"
 import { generateSeed } from "../../utils/generateSeed.mts"
@@ -8,6 +7,7 @@ import { adminApiKey } from "../../config.mts"
 import { getNegativePrompt, getPositivePrompt } from "../../utils/promptUtilities.mts"
 import { cropBase64Video } from "../../ffmpeg/cropBase64Video.mts"
 import { sleep } from "../../utils/sleep.mts"
+import { VideoGenerationParams } from "../../types/video.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_SVD_SECRET_TOKEN || ""}`
 

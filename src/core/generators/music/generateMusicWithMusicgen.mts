@@ -2,8 +2,8 @@
 import { client } from "@gradio/client"
 
 import { adminApiKey } from "../../config.mts"
-import { MusicGenerationParams } from "../../../types.mts"
 import { addBase64HeaderToWav } from "../../utils/addBase64HeaderToWav.mts"
+import { MusicGenerationParams } from "../../types/structures.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_MUSICGEN_SECRET_TOKEN || ""}`
 

@@ -1,8 +1,8 @@
-import { VideoInfo } from "../../../types.mts";
+
 import { generateImageSDXL } from "../image/generateImageWithSDXL.mts";
-import { generateSeed } from "../../utils/generateSeed.mts";
 import { getVideoLoraAndStyle } from "../../huggingface/utils/getVideoLoraAndStyle.mts";
 import { sleep } from "../../utils/sleep.mts";
+import { VideoInfo } from "../../types/video.mts";
 
 export async function generateVideoThumbnail(video: VideoInfo): Promise<string> {
 

@@ -2,9 +2,9 @@ import { Blob } from "buffer"
 
 import { uploadFile } from "@huggingface/hub"
 
-import { VideoInfo } from "../../../types.mts"
 import { adminCredentials, adminUsername } from "../../config.mts"
 import { convertImageToWebp } from "../../utils/convertImageToWebp.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 // upload a video thumbnail (in base64 format - typically a PNG)
 // to the AI Tube index, as a .webp file

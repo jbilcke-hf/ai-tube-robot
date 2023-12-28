@@ -1,10 +1,10 @@
 
 import metadataParser from "markdown-yaml-metadata-parser"
 
-import { ParsedDatasetReadme, ParsedMetadataAndContent } from "../../types.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { defaultVideoModel, defaultVideoOrientation } from "../config.mts"
 import { parseVideoOrientation } from "./parseVideoOrientation.mts"
+import { ParsedDatasetReadme, ParsedMetadataAndContent } from "../types/parsers.mts"
 
 export function parseDatasetReadme(markdown: string = ""): ParsedDatasetReadme {
   try {

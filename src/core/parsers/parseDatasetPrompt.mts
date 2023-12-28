@@ -1,5 +1,7 @@
-import { ChannelInfo, ParsedDatasetPrompt } from "../../types.mts"
+
 import { defaultVideoModel, defaultVideoOrientation } from "../config.mts"
+import { ParsedDatasetPrompt } from "../types/parsers.mts"
+import { ChannelInfo } from "../types/structures.mts"
 import { parseVideoModelName } from "./parseVideoModelName.mts"
 import { parseVideoOrientation } from "./parseVideoOrientation.mts"
 

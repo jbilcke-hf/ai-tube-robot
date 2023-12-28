@@ -1,4 +1,6 @@
-import { VideoInfo } from "../../../types.mts"
+
+import { VideoInfo } from "../../types/video.mts"
+
 import { getVideoIndex } from "./getVideoIndex.mts"
 
 export async function getVideo({

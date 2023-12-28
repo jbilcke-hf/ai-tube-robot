@@ -2,7 +2,8 @@ import fs from "node:fs"
 
 import dotenv from "dotenv"
 import { Credentials } from "@huggingface/hub"
-import { VideoGenerationModel, VideoOrientation } from "../types.mts"
+
+import { VideoGenerationModel, VideoOrientation } from "./types/atoms.mts"
 
 dotenv.config()
 
@@ -50,6 +51,10 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 // but you can set them to true on your own machine
 
 
+// 
+export const quickTestAndDryRun = false
+
+
 // by default, when someone changes their video request title, prompt etc..
 // then the video will be re-generated
 // this can be disabled by setting the following setting to "true"
@@ -57,7 +62,7 @@ export const ignoreChangesMadeToVideoRequests = true
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development
-export const keepVideoInQueue = false
+export const keepVideoInQueue = quickTestAndDryRun ? true : false
 
 // to disable thumbnails - in production, leave it to false!
 // but locally we want to disable this (if working)
@@ -65,10 +70,10 @@ export const skipThumbnailGeneration = false
 
 // set to something like 2 or 1 during debugging!
 // otherwise please pick a large value, such as 40
-export const nbMaxScenes = 45
+export const nbMaxScenes = quickTestAndDryRun ? 1 : 45
 
 // same here, pick a large value in production, and a small value to do a quick local test
-export const nbMaxShots = 45
+export const nbMaxShots = quickTestAndDryRun ? 1 : 45
 
 // set to true to not delete the temporary files
 // this will make it easier for your to inspect the content of the individual .wav and .mp4 files
@@ -92,7 +97,7 @@ export const allowUuidCollisions = false
 
 // if you set it to true, the video won't be uploaded,
 // instead you will see the file path in the console
-export const skipUpload = false
+export const skipUpload = quickTestAndDryRun ? true : false
 
 // to avoid waiting for hours to test a new feature (eg. an AI model),
 // we use the priority system to quicky iterate on the videos of core developers

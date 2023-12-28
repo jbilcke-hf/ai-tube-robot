@@ -1,5 +1,5 @@
 import { ignoreChangesMadeToVideoRequests, skipLowPriorityAccounts } from "./config.mts"
-import { VideoInfo } from "../types.mts"
+
 import { getChannels } from "./huggingface/getters/getChannels.mts"
 import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
 import { sleep } from "./utils/sleep.mts"
@@ -11,6 +11,7 @@ import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
 import { getChannelRating } from "./auth/getChannelRating.mts"
 import { computeOrientationProjectionWidthHeight } from "./huggingface/utils/computeOrientationProjectionWidthHeight.mts"
 import { getChannelIndex } from "./huggingface/getters/getChannelIndex.mts"
+import { VideoInfo } from "./types/video.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {

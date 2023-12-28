@@ -1,8 +1,9 @@
-import { UpscaleImageParams } from "../../../types.mts";
+
+import { UpscaleImageParams } from "../../types/structures.mts";
 import { sleep } from "../../utils/sleep.mts";
 
 import { upscaleImageWithEsgran } from "./upscaleImageWithEsrgan.mts";
-import { upscaleImageWithSdx4 } from "./upscaleImageWithSDx4.mts";
+import { upscaleImageWithSdx4 } from "./upscaleImageWithSdx4.mts";
 
 type ImageUpscaler =
   | "ESRGAN"

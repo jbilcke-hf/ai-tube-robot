@@ -1,5 +1,6 @@
-import { VideoInfo } from "../../../types.mts"
+
 import { getSDXLModel } from "../../generators/image/getSDXLModel.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function getVideoLoraAndStyle(video: VideoInfo): Promise<{
   lora: string

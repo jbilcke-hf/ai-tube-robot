@@ -1,4 +1,4 @@
-import { VideoProjection } from "../../types.mts"
+import { VideoProjection } from "../types/atoms.mts"
 
 export function parseProjectionFromLoRA(input?: any): VideoProjection {
  const name = `${input || ""}`.trim().toLowerCase()

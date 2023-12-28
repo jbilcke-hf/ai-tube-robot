@@ -1,4 +1,4 @@
-import { robotRole, skipProcessingChannels, skipProcessingQueue } from "./config.mts"
+import { skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"

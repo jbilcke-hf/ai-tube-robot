@@ -2,7 +2,7 @@
 import { client } from "@gradio/client"
 
 import { getValidNumber } from "../../parsers/getValidNumber.mts"
-import { UpscaleImageParams } from "../../../types.mts"
+import { UpscaleImageParams } from "../../types/structures.mts"
 
 const gradioApi = `${process.env.IMAGE_UPSCALING_API_GRADIO_URL || ""}`
 const accessToken = `${process.env.AUTH_IMAGE_UPSCALING_API_GRADIO_TOKEN || ""}`

@@ -1,4 +1,5 @@
-import { VideoInfo } from "../../../types.mts"
+
+import { VideoInfo } from "../../types/video.mts"
 import { getVideoIndex } from "../getters/getVideoIndex.mts"
 import { updateVideoIndex } from "./updateVideoIndex.mts"
 

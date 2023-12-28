@@ -1,4 +1,4 @@
-import { SDXLModel } from "../../../types.mts"
+import { SDXLModel } from "../../types/structures.mts"
 import { getSDXLModels } from "./getSDXLModels.mts"
 
 export async function getSDXLModel(repoName: string): Promise<SDXLModel> {

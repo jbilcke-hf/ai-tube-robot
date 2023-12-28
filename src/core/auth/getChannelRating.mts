@@ -1,4 +1,4 @@
-import { ChannelInfo } from "../../types.mts";
+import { ChannelInfo } from "../types/structures.mts";
 
 const winners = new Set(`${process.env.WINNERS || ""}`.toLowerCase().split(",").map(x => x.trim()).filter(x => x))
 

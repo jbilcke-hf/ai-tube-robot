@@ -1,5 +1,6 @@
-import { VideoOrientation } from "../../types.mts"
+
 import { defaultVideoOrientation } from "../config.mts"
+import { VideoOrientation } from "../types/atoms.mts"
 
 export function parseVideoOrientation(text: any, defaultToUse?: VideoOrientation): VideoOrientation {
   const rawOrientationString = `${text || ""}`.trim().toLowerCase()

@@ -1,4 +1,6 @@
-import { ChannelInfo } from "../../../types.mts"
+
+import { ChannelInfo } from "../../types/structures.mts"
+
 import { getChannels } from "./getChannels.mts"
 
 export async function getChannel(options: {

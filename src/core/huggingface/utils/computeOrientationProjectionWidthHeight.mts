@@ -1,6 +1,7 @@
-import { VideoOrientation, VideoProjection } from "../../../types.mts"
+
 import { parseProjectionFromLoRA } from "../../parsers/parseProjectionFromLoRA.mts";
 import { parseVideoOrientation } from "../../parsers/parseVideoOrientation.mts";
+import { VideoOrientation, VideoProjection } from "../../types/atoms.mts";
 
 export function computeOrientationProjectionWidthHeight({
   lora: maybeLora,

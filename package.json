@@ -4,7 +4,7 @@
   "description": "A service to generate videos for AI Tube",
   "main": "src/index.mts",
   "scripts": {
-    "start": "node --loader ts-node/esm src/index.mts",
+    "start": "tsx src/index.mts",
     "docker": "npm run docker:build && npm run docker:run",
     "docker:build": "docker build -t ai-tube-robot .",
     "docker:run": "docker run -it -p 7860:7860 ai-tube-robot"
@@ -38,5 +38,8 @@
     "uuid": "^9.0.0",
     "yaml": "^2.3.1",
     "youtube-ids": "^1.1.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
   }
 }

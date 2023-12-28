@@ -1,10 +1,9 @@
-import { VideoGenerationParams } from "../../../types.mts"
+
 import { addBase64HeaderToMp4 } from "../../utils/addBase64HeaderToMp4.mts"
 import { generateSeed } from "../../utils/generateSeed.mts"
-import { getVideoLoraAndStyle } from "../../huggingface/utils/getVideoLoraAndStyle.mts"
-import { getSDXLModel } from "../image/getSDXLModel.mts"
 
 import { getNegativePrompt, getPositivePrompt } from "../../utils/promptUtilities.mts"
+import { VideoGenerationParams } from "../../types/video.mts"
 
 const gradioApi = `${process.env.AI_TUBE_MODEL_HOTSHOT_XL_GRADIO_URL || ""}`
 const accessToken = `${process.env.AI_TUBE_MODEL_HOTSHOT_XL_SECRET_TOKEN || ""}`

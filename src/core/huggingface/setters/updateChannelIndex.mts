@@ -4,7 +4,7 @@ import { Blob } from "buffer"
 import { uploadFile } from "@huggingface/hub"
 
 import { adminCredentials, adminUsername } from "../../config.mts"
-import { ChannelInfo } from "../../../types.mts"
+import { ChannelInfo } from "../../types/structures.mts"
 
 export async function updateChannelIndex(
   channels: ChannelInfo[] | Record<string, ChannelInfo>

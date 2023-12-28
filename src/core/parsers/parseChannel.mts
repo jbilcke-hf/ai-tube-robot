@@ -1,7 +1,8 @@
 import { adminCredentials, defaultVideoModel, defaultVideoOrientation } from "../config.mts"
 import { Credentials, downloadFile, whoAmI } from "../../libraries/huggingface/hub/src/index.mts"
-import { ChannelInfo, VideoGenerationModel, VideoOrientation } from "../../types.mts"
 import { parseDatasetReadme } from "./parseDatasetReadme.mts"
+import { ChannelInfo } from "../types/structures.mts"
+import { VideoGenerationModel, VideoOrientation } from "../types/atoms.mts"
 
 export async function parseChannel(options: {
   id: string

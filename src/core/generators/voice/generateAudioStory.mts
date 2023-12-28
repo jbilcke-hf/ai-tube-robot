@@ -1,4 +1,5 @@
-import { StoryLine, TTSVoice } from "../../../types.mts"
+
+import { StoryLine } from "../../types/structures.mts"
 import { addBase64HeaderToWav } from "../../utils/addBase64HeaderToWav.mts"
 import { promptToGenerateAudioStory } from "../prompts/prompts.mts"
 

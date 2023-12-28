@@ -1,5 +1,6 @@
-import { VideoGenerationModel } from "../../types.mts"
+
 import { defaultVideoModel } from "../config.mts"
+import { VideoGenerationModel } from "../types/atoms.mts"
 
 export function parseVideoModelName(text: any, defaultToUse: VideoGenerationModel): VideoGenerationModel {
   const rawModelString = `${text || ""}`.trim().toLowerCase()

@@ -1,6 +1,3 @@
-
-import { VideoGenerationParams, VideoInfo } from "../../../types.mts"
-
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { sleep } from "../../utils/sleep.mts"
 import { defaultVideoModel } from "../../config.mts"
@@ -11,6 +8,7 @@ import { generateVideoWithLaVie } from "./generateVideoWithLaVie.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithSVD } from "./generateVideoWithSVD.mts"
 import { parseVideoOrientation } from "../../parsers/parseVideoOrientation.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function generateVideo(prompt: string, video: VideoInfo): Promise<string> {
 

@@ -1,4 +1,4 @@
-import { VideoInfo } from "../../../types.mts"
+import { VideoInfo } from "../../types/video.mts"
 import { deleteFileFromDataset } from "../datasets/deleteFileFromDataset.mts"
 import { formatPromptFileName } from "../utils/formatPromptFileName.mts"
 
