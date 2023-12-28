@@ -1,8 +1,8 @@
-import { skipProcessingChannels, skipProcessingQueue } from "./config.mts"
+import { robotRole, skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
-// import { processUpscaling } from "./processUpscaling.mts"
+import { processUpscaling } from "./processUpscaling.mts"
 
 export const main = async () => {
   
@@ -22,9 +22,9 @@ export const main = async () => {
     //  console.log("main(): locking, going to process tasks..")
     lock.isLocked = true
 
-    // if (robotRole === "UPSCALE") {
-    //   await processUpscaling()
-    // } else {
+    if (robotRole === "UPSCALE") {
+       await processUpscaling()
+    } else {
       if (!skipProcessingChannels) {
         try {
           let nbNewlyEnqueued = await processChannels()
@@ -44,6 +44,7 @@ export const main = async () => {
           console.log(`main(): failed to process: ${err}`)
         }
       }
+    }
     // }
     // console.log("\n---------------------------------------------------\n")
     // console.log("main(): releasing lock")

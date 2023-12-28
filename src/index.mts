@@ -1,7 +1,6 @@
 
 import express from "express"
 
-
 import { main } from "./core/main.mts"
 
 import { updateQueueWithNewRequests } from "./core/huggingface/setters/updateQueueWithNewRequests.mts"
