@@ -22,6 +22,7 @@ export async function splitVideoIntoFrames({
 }: {
   inputVideoPath: string;
   format?: string;
+
 }): Promise<SplitVideoIntoFramesOutput> {
   if (format !== "png") {
     throw new Error("Currently only PNG format is supported.");
@@ -36,7 +37,7 @@ export async function splitVideoIntoFrames({
   const outputDirPath = path.join(os.tmpdir(), uuidv4());
   await fs.mkdir(outputDirPath);
 
-  const frameBaseName = `frame_%04d.${format}`;
+  const frameBaseName = `frame_%06d.${format}`;
   const outputFramesPattern = path.join(outputDirPath, frameBaseName);
 
   return new Promise<SplitVideoIntoFramesOutput>((resolve, reject) => {

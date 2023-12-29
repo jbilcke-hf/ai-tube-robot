@@ -68,6 +68,7 @@ export async function updateQueueWithNewRequests(apiKey: string, optionalChannel
         music: videoRequest.music || "",
         thumbnailUrl: videoRequest.thumbnailUrl || "",
         assetUrl: "", // will be filled in async, later
+        assetUrlHd: "",
         numberOfViews: 0, // we reset
         numberOfLikes: 0, // we reset
         numberOfDislikes: 0, // we reset

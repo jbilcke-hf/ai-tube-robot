@@ -28,11 +28,14 @@ export async function upscaleVideo({
     framesPerSecond
   } = await splitVideoIntoFrames({ inputVideoPath })
 
-  console.log(`split video into ${numberOfFrames} PNG frames`)
+  console.log(`split video into ${numberOfFrames} PNG frames (at ${framesPerSecond} FPS)`)
   console.log(`outputDirPath: ${outputDirPath}`)
+
 
   let i = 0
   for (const framePath of outputFramesPaths) {
+    ++i
+
     console.log(` - upscaling frame ${++i}/${outputFramesPaths.length}`)
 
 
@@ -57,11 +60,21 @@ export async function upscaleVideo({
   
   }
 
+  const inputVideoToUseAsAudio = inputVideoPath
+
+  // those are used for debugging
+  // const inputVideoToUseAsAudio = "./samples/reference_audio.mp4"
   // const outputDirPath = "./samples/frames"
-  // const framesPerSecond = 64
+  // const framesPerSecond = 60
+  
+  console.log("creating video from frames..")
 
   const outputVideoPath = await createVideoFromFrames({
     inputFramesDirectory: outputDirPath,
+
+    framesPerSecond,
+
+    inputVideoToUseAsAudio,
 
     inputFramesFormat: "png",
      // when using SDX4, the output from Hugging Face is a heavily compressed and "blocky" JPG
@@ -75,7 +88,6 @@ export async function upscaleVideo({
      // inputFramesFormat: "png",
 
     // outputVideoPath, // will be auto-generated
-    framesPerSecond,
   })
 
   // console.log("output: ", outputVideoPath)

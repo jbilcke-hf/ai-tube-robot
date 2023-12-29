@@ -49,6 +49,7 @@ export async function getChannelVideos({
         voice: v.voice,
         music: v.music,
         assetUrl: "",
+        assetUrlHd: "",
         numberOfViews: 0,
         numberOfLikes: 0,
         numberOfDislikes: 0,

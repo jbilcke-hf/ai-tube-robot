@@ -1,8 +1,10 @@
 import { upscaleVideo } from "./generators/video/upscaleVideo.mts"
 import { downloadMp4 } from "./huggingface/getters/downloadMp4.mts"
 import { getVideosToUpscale } from "./huggingface/getters/getVideosToUpscale.mts"
+import { updateVideo } from "./huggingface/setters/updateVideo.mts"
 import { updateVideosToUpscale } from "./huggingface/setters/updateVideosToUpscale.mts"
 import { uploadMp4 } from "./huggingface/setters/uploadMp4.mts"
+import { uploadVideoMeta } from "./huggingface/setters/uploadVideoMeta.mts"
 
 // this dequeue whatever is in to_upscale.json and upscale it
 // note that the whole process is quite slow when using only one upscaling server
@@ -13,16 +15,16 @@ export const processUpscaling = async () => {
   // note: we should probably generate a low resolution too,
   // to be used when we are on the index page
 
-  const videos = await getVideosToUpscale({
+  const toUpscale = await getVideosToUpscale({
     renewCache: true,
     neverThrow: false
   })
 
-  const videosToUpscale = Object.values(videos)
+  const videosToUpscale = Object.values(toUpscale)
 
   let i = 0
   for (const video of videosToUpscale) {
-    console.log(`============( upscaling video ${+i}/${videosToUpscale.length} )============`)
+    console.log(`============( upscaling video ${++i}/${videosToUpscale.length} )============`)
     try {
       // first we try to download the mp4
       const pathToMp4 = await downloadMp4({ urlToMp4: video.assetUrl })
@@ -44,16 +46,28 @@ export const processUpscaling = async () => {
       const uploadedTo = await uploadMp4({
         video,
         filePath: upscaledVideoFilePath,
-        suffix: "_hd.mp4" // <- of uttermost importance
+        suffix: "_hd" // <- of uttermost importance
       })
 
       console.log("uploaded to:", uploadedTo)
+      video.assetUrlHd = uploadedTo
 
-      delete videos[video.id]
+      // then we update the video meta
+      await uploadVideoMeta({ video })
+
+      // note: this won't update the video index,
+      // which will still be missing the extra information
+      // but that's OK because we are going to change this index anyway:
+      // make it lighter (remove info about channels)
+
+      delete toUpscale[video.id]
+      // TODO: get and update here
     } catch (err) {
+      console.log("failed to upscale the video:")
       console.error(err)
     }
   }
 
-  await updateVideosToUpscale({ videos })
+  // TODO: 
+  await updateVideosToUpscale({ videos: toUpscale })
 }

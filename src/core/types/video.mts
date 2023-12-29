@@ -52,8 +52,20 @@ export type VideoInfo = {
 
   /**
    * URL to the binary file
+   * 
+   * This is the standard format
+   * 
+   * see width and height for details
+   * 
+   * (it will be something like 1024x576, 576x1024, 1024x512)
+   * 
    */
   assetUrl: string
+
+  /**
+   * This is contain the storage URL of the higher-resolution video
+   */
+  assetUrlHd: string
 
   /**
    * Counter for the number of views

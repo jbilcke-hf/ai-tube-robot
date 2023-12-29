@@ -171,6 +171,7 @@ export async function processChannels(): Promise<number> {
         voice: videoRequest.voice,
         music: videoRequest.music,
         assetUrl: "", // will be generated in async
+        assetUrlHd: "", // will be generate even further later
         numberOfViews: 0,
         numberOfLikes: 0,
         numberOfDislikes: 0,
