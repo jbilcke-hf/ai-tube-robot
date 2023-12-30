@@ -4,10 +4,10 @@ import { downloadFileAsText } from "../datasets/downloadFileAsText.mts"
 import { getCredentials } from "../../auth/getCredentials.mts"
 import { parseDatasetPrompt } from "../../parsers/parseDatasetPrompt.mts"
 import { parsePromptFileName } from "../../parsers/parsePromptFileName.mts"
-import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
 import { ChannelInfo } from "../../types/structures.mts"
 import { VideoRequest } from "../../types/requests.mts"
+import { downloadClapProject } from "./downloadClapProject.mts"
 
 /**
  * Return all the videos requests created by a user on their channel
@@ -43,91 +43,109 @@ export async function getVideoRequestsFromChannel({
         ? { cache: "no-cache" }
         : undefined
     })) {
+      try {
+        const filePath = file.path.toLowerCase().trim()
+        // TODO we should add some safety mechanisms here:
+        // skip lists of files that are too long
+        // skip files that are too big
+        // skip files with file.security.safe !== true
 
-      const filePath = file.path.toLowerCase().trim()
-      // TODO we should add some safety mechanisms here:
-      // skip lists of files that are too long
-      // skip files that are too big
-      // skip files with file.security.safe !== true
+        // console.log("file.path:", file.path)
+        /// { type, oid, size, path }
+        if (filePath === "readme.md") {
+          // console.log("found the README")
+          // TODO: read this readme to extract channel information
 
-      // console.log("file.path:", file.path)
-      /// { type, oid, size, path }
-      if (filePath === "readme.md") {
-        // console.log("found the README")
-        // TODO: read this readme to extract channel information
+        } else if (filePath.endsWith(".clap")) {
+          // the problem with clap files is that they are huge,
+          // so we only download them if they aren't in the index yet
+          const clap = await downloadClapProject({
+            path: file.path,
+            channel,
+            apiKey
+          })
+          console.log("got a clap file:", clap.clapProject.meta)
+        } else if (filePath.startsWith("prompt_") && filePath.endsWith(".md")) {
+          
+          const id = parsePromptFileName(filePath)
 
-      } else if (filePath.startsWith("prompt_") && filePath.endsWith(".md")) {
-        
-        const id = parsePromptFileName(filePath)
+          // console.log("id:", id)
+          if (!id) { continue }
 
-        // console.log("id:", id)
-        if (!id) { continue }
+          const rawMarkdown = await downloadFileAsText({
+            repo,
+            path: file.path, // be sure to use the original file.path (with capitalization if any) and not filePath
+            apiKey,
+            renewCache,
+            neverThrow: true,
+          })
 
-        const rawMarkdown = await downloadFileAsText({
-          repo,
-          path: file.path, // be sure to use the original file.path (with capitalization if any) and not filePath
-          apiKey,
-          renewCache,
-          neverThrow: true,
-        })
+          if (!rawMarkdown) {
+            // console.log(`markdown file is empty, skipping`)
+            continue
+          }
 
-        if (!rawMarkdown) {
-          // console.log(`markdown file is empty, skipping`)
-          continue
-        }
+          const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice, orientation } = parseDatasetPrompt(rawMarkdown, channel)
+          
+          if (!title) {
+            console.log("dataset prompt file is unparseable: the title is missing")
+            continue
+          }
 
-        const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice, orientation } = parseDatasetPrompt(rawMarkdown, channel)
-        
-        if (!title) {
-          console.log("dataset prompt file is unparseable: the title is missing")
-          continue
-        }
+          if (!description) {
+            //console.log("dataset prompt file is unparseable: the description is missing")
+            // continue
+          }
 
-        if (!description) {
-          //console.log("dataset prompt file is unparseable: the description is missing")
-          // continue
-        }
+          if (!prompt) {
+            console.log("dataset prompt file is unparseable: the prompt is missing")
+            continue
+          }
 
-        if (!prompt) {
-          console.log("dataset prompt file is unparseable: the prompt is missing")
-          continue
-        }
+          // console.log("prompt parsed markdown:", { title, description, tags })
 
-        // console.log("prompt parsed markdown:", { title, description, tags })
+          let thumbnailUrl =
+            thumbnail.startsWith("http")
+              ? thumbnail
+              : (thumbnail.endsWith(".webp") || thumbnail.endsWith(".jpg") || thumbnail.endsWith(".jpeg"))
+              ? `https://huggingface.co/${repo}/resolve/main/${thumbnail}`
+              : ""
 
-        let thumbnailUrl =
-          thumbnail.startsWith("http")
-            ? thumbnail
-            : (thumbnail.endsWith(".webp") || thumbnail.endsWith(".jpg") || thumbnail.endsWith(".jpeg"))
-            ? `https://huggingface.co/${repo}/resolve/main/${thumbnail}`
-            : ""
+          // TODO: the clap file is empty if
+          // the video is prompted using Markdown
+          const clapUrl = ""
 
-        const video: VideoRequest = {
-          id,
-          label: title,
-          description: description || title,
-          prompt,
-          thumbnailUrl,
-          model,
-          lora,
-          style,
-          voice,
-          music,
-          updatedAt: file.lastCommit?.date || new Date().toISOString(),
-          tags: Array.isArray(tags) && tags.length ? tags : channel.tags,
-          channel,
-          duration: 0,
-          ...computeOrientationProjectionWidthHeight({
+          const video: VideoRequest = {
+            id,
+            label: title,
+            description: description || title,
+            prompt,
+            thumbnailUrl,
+            clapUrl,
+            model,
             lora,
-            orientation,
-            // projection, // <- will be extrapolated from the LoRA for now
-          }),
+            style,
+            voice,
+            music,
+            updatedAt: file.lastCommit?.date || new Date().toISOString(),
+            tags: Array.isArray(tags) && tags.length ? tags : channel.tags,
+            channel,
+            duration: 0,
+            ...computeOrientationProjectionWidthHeight({
+              lora,
+              orientation,
+              // projection, // <- will be extrapolated from the LoRA for now
+            }),
+          }
+
+          videos[id] = video
+
+        } else if (filePath.endsWith(".mp4")) {
+          // console.log("found a video:", file.path)
         }
-
-        videos[id] = video
-
-      } else if (filePath.endsWith(".mp4")) {
-        // console.log("found a video:", file.path)
+      } catch (err) {
+        console.error("error while processing a dataset file:")
+        console.error(err)
       }
     }
 

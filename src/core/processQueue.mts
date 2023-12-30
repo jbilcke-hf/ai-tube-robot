@@ -16,6 +16,7 @@ export async function processQueue(): Promise<number> {
   let nbProcessed = 0
 
   for (const video of videos) {
+    
     if (await processHighLevelVideoFormat({
       video,
       queuedVideos,

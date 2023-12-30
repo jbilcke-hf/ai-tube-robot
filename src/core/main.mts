@@ -3,20 +3,6 @@ import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 import { processUpscaling } from "./processUpscaling.mts"
-import { upscaleVideo } from "./generators/video/upscaleVideo.mts"
-
-/*
-export const main = async () => {
-  const inputVideoPath = "./samples/test_002_4_60_better.mp4"
-
-  const outputVideoPath = await upscaleVideo({
-    inputVideoPath,
-    prompt: "",
-  })
-
-  console.log("outputVideoPath:", outputVideoPath)
-}
-*/
 
 export const main = async () => {
   

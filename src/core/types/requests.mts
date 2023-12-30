@@ -109,6 +109,11 @@ export type VideoRequest = {
   thumbnailUrl: string
 
   /**
+   * URL to a clap file
+   */
+  clapUrl: string
+
+  /**
    * When was the video updated
    */
   updatedAt: string

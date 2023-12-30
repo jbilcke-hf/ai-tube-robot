@@ -43,6 +43,7 @@ export async function getChannelVideos({
         description: v.description,
         prompt: v.prompt,
         thumbnailUrl: v.thumbnailUrl,
+        clapUrl: v.clapUrl,
         model: v.model,
         lora: v.lora,
         style: v.style,

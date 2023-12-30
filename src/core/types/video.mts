@@ -51,6 +51,11 @@ export type VideoInfo = {
   thumbnailUrl: string
 
   /**
+   * URL to a clap file
+   */
+  clapUrl: string
+
+  /**
    * URL to the binary file
    * 
    * This is the standard format

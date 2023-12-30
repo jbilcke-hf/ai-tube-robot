@@ -20,8 +20,9 @@ export type HotshotImageInferenceSize =
 | '576x1024' // tiktok ratio (9:16) this isn't supported / supposed to work properly
 
 export type VideoStatus =
-  | "submitted" // the prompt has been submitted, but is not added to the index queue yet
-  | "queued" // the prompt has been added to the index queue, but is not processed yet. Once queued it cannot be modified.
+  | "draft" // the video should be ignored for now
+  | "submitted" // the video has been submitted, but is not added to the index queue yet
+  | "queued" // the video has been added to the index queue, but is not processed yet. Once queued it cannot be modified.
   | "generating" // the video is being generated
   // TODO add a state to indicate the audio is being generated
   // this will be useful in case generation fails

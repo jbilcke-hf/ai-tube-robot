@@ -36,7 +36,7 @@ export async function upscaleVideo({
   for (const framePath of outputFramesPaths) {
     ++i
 
-    console.log(` - upscaling frame ${++i}/${outputFramesPaths.length}`)
+    console.log(` - upscaling frame ${i}/${outputFramesPaths.length}`)
 
 
     const lowResImageBase64 = await readPngFileToBase64(framePath)

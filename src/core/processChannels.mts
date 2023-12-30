@@ -1,4 +1,4 @@
-import { ignoreChangesMadeToVideoRequests, skipLowPriorityAccounts } from "./config.mts"
+import { defaultVideoModel, ignoreChangesMadeToVideoRequests, skipLowPriorityAccounts } from "./config.mts"
 
 import { getChannels } from "./huggingface/getters/getChannels.mts"
 import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
@@ -161,15 +161,16 @@ export async function processChannels(): Promise<number> {
       const newVideo: VideoInfo = {
         id: videoRequest.id,
         status: "queued",
-        label: videoRequest.label,
-        description: videoRequest.description,
-        prompt: videoRequest.prompt,
-        thumbnailUrl: videoRequest.thumbnailUrl, // will be generated in async
-        model: videoRequest.model,
-        lora: videoRequest.lora,
-        style: videoRequest.style,
-        voice: videoRequest.voice,
-        music: videoRequest.music,
+        label: videoRequest.label || "",
+        description: videoRequest.description || "",
+        prompt: videoRequest.prompt || "",
+        thumbnailUrl: videoRequest.thumbnailUrl || "", // will be generated in async
+        clapUrl: videoRequest.clapUrl || "",
+        model: videoRequest.model || defaultVideoModel,
+        lora: videoRequest.lora || "",
+        style: videoRequest.style || "",
+        voice: videoRequest.voice || "",
+        music: videoRequest.music || "",
         assetUrl: "", // will be generated in async
         assetUrlHd: "", // will be generate even further later
         numberOfViews: 0,

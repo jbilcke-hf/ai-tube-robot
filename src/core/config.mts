@@ -32,6 +32,9 @@ export const robotRole = (
 export const adminApiKey = `${process.env.ADMIN_HUGGING_FACE_API_TOKEN || ""}`
 export const adminUsername = `${process.env.ADMIN_HUGGING_FACE_USERNAME || ""}`
 
+export const testUserApiKey = `${process.env.TEST_USER_HUGGING_FACE_API_TOKEN || ""}`
+export const testUserUsername = `${process.env.TEST_USER_HUGGING_FACE_USERNAME || ""}`
+
 export const adminCredentials: Credentials = { accessToken: adminApiKey }
 
 export const defaultVideoModel: VideoGenerationModel = "SVD"
