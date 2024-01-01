@@ -1,7 +1,6 @@
 
 import { generateImageSDXL } from "../image/generateImageWithSDXL.mts";
 import { getVideoLoraAndStyle } from "../../huggingface/utils/getVideoLoraAndStyle.mts";
-import { sleep } from "../../utils/sleep.mts";
 import { VideoInfo } from "../../types/video.mts";
 
 export async function generateVideoThumbnail(video: VideoInfo): Promise<string> {
@@ -34,28 +33,9 @@ export async function generateVideoThumbnail(video: VideoInfo): Promise<string> 
     height,
     // seed: generateSeed()
   }
-  try {
-    const thumbnail = await generateImageSDXL(imageParams)
-    return thumbnail
-  } catch (err) {
-    try {
-      await sleep(4000)
-      const thumbnail = await generateImageSDXL({
-        ...imageParams,
-        // seed: generateSeed()
-      })
-      return thumbnail
-    } catch (err) {
-      try {
-        await sleep(10000)
-        const thumbnail = await generateImageSDXL({
-          ...imageParams,
-          // seed: generateSeed()
-        })
-        return thumbnail
-      } catch (err) {
-        console.error(`failed to generate the thumbnail, even after the third attempt`)
-      }
-    }
-  }
+
+  return generateImageSDXL({
+    ...imageParams,
+    // seed: generateSeed()
+  })
 }

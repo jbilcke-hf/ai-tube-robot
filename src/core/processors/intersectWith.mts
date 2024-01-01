@@ -1,4 +1,4 @@
-import { ClapSegment } from "../types/clap.mts"
+import { ClapSegment } from "../clap/types.mts"
 
 /**
  * Return all segments temporally intersecting with a specific segment

@@ -1,6 +1,6 @@
 import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
-import { processHighLevelVideoFormat } from "./processors/processHighLevelVideoFormat.mts"
-import { processLowLevelVideoFormat } from "./processors/processLowLevelVideoFormat.mts"
+import { generateVideoFromMarkdown } from "./processors/generateVideoFromMarkdown.mts"
+import { generateVideoFromClap } from "./processors/generateVideoFromClap.mts"
 
 export async function processQueue(): Promise<number> {
   console.log("|- checking the queue for videos to generate")
@@ -18,11 +18,11 @@ export async function processQueue(): Promise<number> {
 
   for (const video of videos) {
     
-    const processor = video.clapUrl
-      ? processLowLevelVideoFormat
-      : processHighLevelVideoFormat
+    const videoGenerationWorkflow = video.clapUrl
+      ? generateVideoFromClap
+      : generateVideoFromMarkdown
 
-    if (await processor({
+    if (await videoGenerationWorkflow({
       video,
       queuedVideos,
       publishedVideos

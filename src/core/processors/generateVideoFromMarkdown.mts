@@ -25,7 +25,7 @@ import { VideoInfo } from "../types/video.mts"
 
 // the high-level definition format used by AI Tube robots (and humans)
 // in its current form, it can support simple content such as music videos, documentaries, shorts..
-export async function processHighLevelVideoFormat({
+export async function generateVideoFromMarkdown({
   video,
   queuedVideos,
   publishedVideos

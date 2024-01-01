@@ -8,7 +8,7 @@ import { ChannelInfo } from "./types/structures.mts"
 import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
 import { VideoInfo } from "./types/video.mts"
 import { VideoRequest } from "./types/requests.mts"
-import { processLowLevelVideoFormat } from "./processors/processLowLevelVideoFormat.mts"
+import { processLowLevelVideoFormat } from "./processors/generateVideoFromClap.mts"
 
 export const main1 = async () => {
   // const channels = await getChannels({ apiKey: testUserApiKey })

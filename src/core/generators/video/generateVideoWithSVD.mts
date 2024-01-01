@@ -8,6 +8,7 @@ import { getNegativePrompt, getPositivePrompt } from "../../utils/promptUtilitie
 import { cropBase64Video } from "../../ffmpeg/cropBase64Video.mts"
 import { sleep } from "../../utils/sleep.mts"
 import { VideoGenerationParams } from "../../types/video.mts"
+import { tryApiCalls } from "../../utils/tryApiCalls.mts"
 
 const accessToken = `${process.env.AI_TUBE_MODEL_SVD_SECRET_TOKEN || ""}`
 
@@ -44,35 +45,18 @@ export const generateVideoWithSVD = async ({
     // console.log(`calling SDXL..`)
 
     // TODO: generate a SDXL image using a lora!
-    let image = ""
-    
-    try {
-      image = await generateImageSDXL({
-        lora,
-        positivePrompt,
-        negativePrompt,
-        seed: imageSeed,
-        width: widthForSVD,
-        height: heightForSVD,
-        nbSteps: 70,
-        guidanceScale: 8,
-      })
-    } catch (err) {
-      // SDXL using the Inference API sometimes throw an error due to various factors,
-      // (unavailable GPU, it reboots, timeout, network latency etc)
-      // so we need to force our way in
-      await sleep(60000)
-      image = await generateImageSDXL({
-        lora,
-        positivePrompt,
-        negativePrompt: negativePrompt + ", defects",
-        seed:  generateSeed(),
-        width: widthForSVD,
-        height: heightForSVD,
-        nbSteps: 70,
-        guidanceScale: 8,
-      })
-    }
+
+    // note: this will perform multiple attempts
+    const image = await generateImageSDXL({
+      lora,
+      positivePrompt,
+      negativePrompt,
+      seed: imageSeed,
+      width: widthForSVD,
+      height: heightForSVD,
+      nbSteps: 70,
+      guidanceScale: 8,
+    })
 
     /*
     console.log("generated an image with:", {
@@ -88,7 +72,6 @@ export const generateVideoWithSVD = async ({
     */
    
     // console.log(`calling SVD..`)
-
   
     /*
     console.log(`sending POST to api.predict /video with params:`, {

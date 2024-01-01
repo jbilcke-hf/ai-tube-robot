@@ -1,8 +1,8 @@
 import YAML from "yaml"
 import { v4 as uuidv4 } from "uuid"
 
-import { ClapHeader, ClapMeta, ClapModel, ClapProject, ClapSegment } from "../types/clap.mts"
-import { getValidNumber } from "./getValidNumber.mts"
+import { ClapHeader, ClapMeta, ClapModel, ClapProject, ClapSegment } from "./types.mts"
+import { getValidNumber } from "../parsers/getValidNumber.mts"
 
 /**
  * import a Clap file (from a plain text string)
@@ -47,8 +47,8 @@ export async function parseClap(inputStringOrBlob: string | Blob): Promise<ClapP
     description: typeof maybeClapMeta.description === "string" ? maybeClapMeta.description : "",
     licence: typeof maybeClapMeta.licence === "string" ? maybeClapMeta.licence : "",
     orientation: maybeClapMeta.orientation === "portrait" ? "portrait" : maybeClapMeta.orientation === "square" ? "square" : "landscape",
-    width: getValidNumber(maybeClapMeta.width, 256, 4096, 1024),
-    height: getValidNumber(maybeClapMeta.height, 256, 4096, 1024),
+    width: getValidNumber(maybeClapMeta.width, 256, 8192, 1024),
+    height: getValidNumber(maybeClapMeta.height, 256, 8192, 576),
     defaultVideoModel: typeof maybeClapMeta.defaultVideoModel === "string" ? maybeClapMeta.defaultVideoModel : "SVD",
     extraPositivePrompt: Array.isArray(maybeClapMeta.extraPositivePrompt) ? maybeClapMeta.extraPositivePrompt : [],
   }

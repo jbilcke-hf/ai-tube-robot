@@ -63,7 +63,7 @@ export async function getVideoRequestsFromChannel({
           const clap = await downloadClapProject({
             path: file.path,
             channel,
-            apiKey
+            credentials,
           })
 
           // note: this kind of filtering can make sense for AI Tube robot,

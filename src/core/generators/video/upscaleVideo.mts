@@ -1,7 +1,7 @@
 import { createVideoFromFrames } from "../../ffmpeg/createVideoFromFrames.mts";
 import { splitVideoIntoFrames } from "../../ffmpeg/splitVideoIntoFrames.mts";
 import { readPngFileToBase64 } from "../../files/readPngFileToBase64.mts";
-import { writeBase64ToFile } from "../../utils/writeBase64ToFile.mts";
+import { writeBase64ToFile } from "../../files/writeBase64ToFile.mts";
 import { upscaleImage } from "../image/upscaleImage.mts";
 
 /**

@@ -1,4 +1,4 @@
-import { ClapModel, ClapSegment } from "../types/clap.mts"
+import { ClapModel, ClapSegment } from "../clap/types.mts"
 
 
 /**

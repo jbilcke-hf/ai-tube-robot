@@ -5,7 +5,7 @@ import path from "node:path"
 import { v4 as uuidv4 } from "uuid";
 import ffmpeg, { FfmpegCommand } from "fluent-ffmpeg";
 import { addBase64HeaderToWav } from "../utils/addBase64HeaderToWav.mts";
-import { writeBase64ToFile } from "../utils/writeBase64ToFile.mts";
+import { writeBase64ToFile } from "../files/writeBase64ToFile.mts";
 import { getMediaInfo } from "./getMediaInfo.mts";
 import { removeTemporaryFiles } from "../utils/removeTmpFiles.mts";
 

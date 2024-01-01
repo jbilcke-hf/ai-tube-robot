@@ -1,24 +1,25 @@
 import { v4 as uuidv4 } from "uuid"
+import { Credentials } from "@huggingface/hub"
 
-import { ClapProject } from "../../types/clap.mts"
+import { ClapProject } from "../../clap/types.mts"
 import { VideoRequest } from "../../types/requests.mts"
 import { VideoInfo } from "../../types/video.mts"
-import { parseClap } from "../../parsers/parseClap.mts"
+import { parseClap } from "../../clap/parseClap.mts"
 import { ChannelInfo } from "../../types/structures.mts"
 import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { defaultVideoModel } from "../../config.mts"
-import { downloadFileAsText } from "../datasets/downloadFileAsText.mts"
 import { downloadFileAsBlob } from "../datasets/downloadFileAsBlob.mts"
+
 
 export async function downloadClapProject({
   path,
-  apiKey,
-  channel
+  channel,
+  credentials,
 }: {
   path: string
-  apiKey?: string
   channel: ChannelInfo
+  credentials: Credentials
 }): Promise<{
   videoRequest: VideoRequest
   videoInfo: VideoInfo
@@ -31,7 +32,7 @@ export async function downloadClapProject({
   const clapString = await downloadFileAsBlob({
     repo,
     path,
-    apiKey,
+    apiKey: credentials.accessToken,
     expectedMimeType: "application/gzip"
   })
 

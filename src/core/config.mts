@@ -63,6 +63,15 @@ export const quickTestAndDryRun = true
 // this can be disabled by setting the following setting to "true"
 export const ignoreChangesMadeToVideoRequests = true
 
+// this is used for debugging clap files
+// if set to true, this will ignore previews that are already completed, and generate them again
+export const clapConfigForceRerenderingAllPreview = true
+
+// this is used for debugging clap files
+// if set to true, this will use the "turbo" mode which is fast
+// but speed isn't an issue when on server-side, so..
+export const clapConfigUseTurboMode = true
+
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development
 export const keepVideoInQueue = quickTestAndDryRun ? true : false

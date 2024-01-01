@@ -8,7 +8,7 @@ import { addBase64HeaderToWav } from "../utils/addBase64HeaderToWav.mts";
 import { addBase64HeaderToMp4 } from "../utils/addBase64HeaderToMp4.mts";
 import { concatenateVideos } from "./concatenateVideos.mts";
 import { keepTemporaryFiles } from "../config.mts";
-import { writeBase64ToFile } from "../utils/writeBase64ToFile.mts";
+import { writeBase64ToFile } from "../files/writeBase64ToFile.mts";
 import { getMediaInfo } from "./getMediaInfo.mts";
 import { removeTemporaryFiles } from "../utils/removeTmpFiles.mts";
 
