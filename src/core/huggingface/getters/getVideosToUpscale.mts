@@ -9,7 +9,7 @@ export async function getVideosToUpscale({
 }: {
   renewCache?: boolean
   neverThrow?: boolean
-}): Promise<Record<string, VideoInfo>> {
+} = {}): Promise<Record<string, VideoInfo>> {
   try {
     const response = await fetch(
       `https://huggingface.co/datasets/${adminUsername}/ai-tube-index/raw/main/to_upscale.json`

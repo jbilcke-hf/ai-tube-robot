@@ -8,6 +8,7 @@ import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
 import { getVideoIndex } from "../getters/getVideoIndex.mts"
 import { computeOrientationProjectionWidthHeight } from "../utils/computeOrientationProjectionWidthHeight.mts"
 import { ChannelInfo } from "../../types/structures.mts"
+import { VideoInfo } from "../../types/video.mts"
 
 export async function updateQueueWithNewRequests(apiKey: string, optionalChannel?: ChannelInfo): Promise<number> {
   const isAdmin = apiKey === adminApiKey

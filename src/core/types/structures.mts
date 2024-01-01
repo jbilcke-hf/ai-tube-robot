@@ -105,6 +105,14 @@ export type ChannelInfo = {
   slug: string
 
   /**
+   * username id of the Hugging Face dataset
+   * 
+   * ex: f9a38286ec3436a45edd2cca
+   */
+  // DISABLED FOR NOW
+  // datasetUserId: string
+  
+  /**
    * username slug of the Hugging Face dataset
    * 
    * eg: jbilcke-hf
@@ -199,4 +207,22 @@ export type UpscaleImageParams = {
   imageAsBase64: string
   prompt?: string
   scaleFactor?: number
+}
+
+export type UserInfo = {
+  id: string
+
+  type: "creator" | "normal" | "admin"
+
+  userName: string
+
+  fullName: string
+  
+  thumbnail: string
+
+  channels: ChannelInfo[]
+
+  // the Hugging Face API token is confidential,
+  // and will only be available for the current user
+  hfApiToken?: string
 }

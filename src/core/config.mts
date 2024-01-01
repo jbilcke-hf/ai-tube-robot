@@ -55,7 +55,7 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 
 
 // 
-export const quickTestAndDryRun = false
+export const quickTestAndDryRun = true
 
 
 // by default, when someone changes their video request title, prompt etc..
@@ -93,6 +93,9 @@ export const skipProcessingChannels = true
 
 // this is the main job! be sure of if you want to skip it or not!
 export const skipProcessingQueue = false
+
+// if you set it to true, AI Tube Robot will ignore anything related to pre-release projects
+export const skipPreReleaseStuff = false
 
 export const skipVideoInterpolation = false
 

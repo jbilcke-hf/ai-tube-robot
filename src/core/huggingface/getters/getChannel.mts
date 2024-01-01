@@ -7,6 +7,7 @@ export async function getChannel(options: {
   channelId: string
   apiKey?: string
   owner?: string
+  // ownerId?: string
   renewCache?: boolean
 }): Promise<ChannelInfo> {
   const channels = await getChannels(options)

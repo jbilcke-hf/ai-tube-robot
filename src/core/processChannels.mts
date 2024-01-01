@@ -1,17 +1,10 @@
-import { defaultVideoModel, ignoreChangesMadeToVideoRequests, skipLowPriorityAccounts } from "./config.mts"
+import { defaultVideoModel, ignoreChangesMadeToVideoRequests, skipPreReleaseStuff } from "./config.mts"
 
-import { getChannels } from "./huggingface/getters/getChannels.mts"
-import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
-import { sleep } from "./utils/sleep.mts"
 import { updateVideoIndex } from "./huggingface/setters/updateVideoIndex.mts"
 import { getVideoIndex } from "./huggingface/getters/getVideoIndex.mts"
-import { updateChannelIndex } from "./huggingface/setters/updateChannelIndex.mts"
-import { isHighPriorityChannel } from "./auth/isHighPriorityChannel.mts"
-import { isOwnedByBadActor } from "./auth/isOwnedByBadActor.mts"
-import { getChannelRating } from "./auth/getChannelRating.mts"
 import { computeOrientationProjectionWidthHeight } from "./huggingface/utils/computeOrientationProjectionWidthHeight.mts"
-import { getChannelIndex } from "./huggingface/getters/getChannelIndex.mts"
 import { VideoInfo } from "./types/video.mts"
+import { getChannelsToScan } from "./getChannelsToScan.mts"
 
 // note: this might be an expensive operation, so we should only do it every hours or more
 export async function processChannels(): Promise<number> {
@@ -20,71 +13,23 @@ export async function processChannels(): Promise<number> {
   const queuedVideos = await getVideoIndex({ status: "queued", renewCache: true })
   const publishedVideos = await getVideoIndex({ status: "published", renewCache: true })
   const generatingVideos = await getVideoIndex({ status: "generating", renewCache: true })
-  const indexedChannels = await getChannelIndex({ renewCache: true })
-
-  await sleep(2000)
-
-  console.log("processChannels(): checking the Hugging Face platform for AI Tube channels")
-  
-
-  let channels = await getChannels({})
-
-  const nbTotalChannels = channels.length
-
-  console.log(`processChannels(): ${channels.length} public channels identified`)
-
-  // only keep channels which are NOT owned by bad actors
-  channels = channels.filter(channel => !isOwnedByBadActor(channel))
-  const nbBannedChannels = nbTotalChannels - channels.length
-
-  console.log(`processChannels(): ${
-    channels.length
-  } channels are legit, while ${
-    nbBannedChannels
-  } are compromised`)
-
-
-  console.log(`processChannels(): checking if channel index needs to be updated..`)
-
-
-  const channelsBefore = JSON.stringify(Object.values(indexedChannels).sort((a, b) => a.id.localeCompare(b.id)))
-
-  const channelsNow = JSON.stringify(channels.sort((a, b) => a.id.localeCompare(b.id)))
-
-  if (channelsBefore !== channelsNow) {
-    console.log("processChannels(): channel index needs to be updated..")
-    await updateChannelIndex(channels)
-    console.log(`processChannels(): channel index updated!`)
-  } else {
-    console.log(`processChannels(): channel index is already up to date!`)
-
-  }
-
-  if (skipLowPriorityAccounts) {
-    console.log("processChannels(): skipLowPriorityAccounts is toggled ON")
-    channels = channels.filter(channel => isHighPriorityChannel(channel))
-  } else {
-    // put high-priority accounts (developers, admins, VIPs etc) at the top
-    channels.sort((a, b) => {
-      return isHighPriorityChannel(a) ? -1 : +1
-    })
-  }
 
   let nbNewlyEnqueued = 0
 
-  for (const channel of channels) {
+  const channelsToScan = await getChannelsToScan()
 
-    if (!getChannelRating(channel)) { continue }
-    
-    await sleep(500)
+  for (const { channel, videosRequests, isPreRelease } of channelsToScan) {
 
-    const videosRequests = await getVideoRequestsFromChannel({
-      channel,
-      renewCache: true,
-      neverThrow: true
-    })
-  
-    console.log(`scanned channel "${channel.datasetName}" by @${channel.datasetUser} (found ${videosRequests.length} videos)`)
+    if (isPreRelease) {
+      if (skipPreReleaseStuff) {
+        console.log(`ignoring pre-release channel..`)
+        continue
+      } else {
+        console.log(`found a pre-release channel 👀`)
+      }
+    }
+
+    console.log(`@${channel.datasetUser}/${channel.datasetName}: ${videosRequests.length} projects`)
     
     for (const videoRequest of videosRequests) {
 
@@ -99,7 +44,7 @@ export async function processChannels(): Promise<number> {
         || (videoAlreadyQueued && videoAlreadyQueued.channel.id !== videoRequest.channel.id)
 
       if (userTriedToUseSomeoneElseVideoId) {
-        console.error("WOAH! WE HAVE A VIDEO ID COLLISION!")
+        console.error("WOAH! WE HAVE A VIDEO ID COLLISION! BIG NO NO")
         console.log("Please warn the user that they cannot reuse the ID of someone's else!")
         continue
       }

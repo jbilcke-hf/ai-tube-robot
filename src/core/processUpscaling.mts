@@ -15,10 +15,7 @@ export const processUpscaling = async () => {
   // note: we should probably generate a low resolution too,
   // to be used when we are on the index page
 
-  const toUpscale = await getVideosToUpscale({
-    renewCache: true,
-    neverThrow: false
-  })
+  const toUpscale = await getVideosToUpscale()
 
   const videosToUpscale = Object.values(toUpscale)
 

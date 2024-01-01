@@ -16,8 +16,8 @@ import { downloadClapProject } from "./downloadClapProject.mts"
 export async function getVideoRequestsFromChannel({
   channel,
   apiKey,
-  renewCache,
-  neverThrow,
+  renewCache = true,
+  neverThrow = true,
 }: {
   channel: ChannelInfo
   apiKey?: string
@@ -58,13 +58,24 @@ export async function getVideoRequestsFromChannel({
 
         } else if (filePath.endsWith(".clap")) {
           // the problem with clap files is that they are huge,
-          // so we only download them if they aren't in the index yet
+          // so we *should* only download them if they aren't in the index yet
+          // however, this part isn't coded just quite yet
           const clap = await downloadClapProject({
             path: file.path,
             channel,
             apiKey
           })
+
+          // note: this kind of filtering can make sense for AI Tube robot,
+          // but on the frontend UI we want to display everything
+          // also: the AI Tube robot should report those missing entries as errors, back to the user
+          if (!clap.videoRequest.label) {
+            console.log("dataset clap file is incomplete: the label is missing")
+            continue
+          }
           console.log("got a clap file:", clap.clapProject.meta)
+
+          videos[clap.videoRequest.id] = clap.videoRequest
         } else if (filePath.startsWith("prompt_") && filePath.endsWith(".md")) {
           
           const id = parsePromptFileName(filePath)
@@ -87,6 +98,9 @@ export async function getVideoRequestsFromChannel({
 
           const { title, description, tags, prompt, thumbnail, model, lora, style, music, voice, orientation } = parseDatasetPrompt(rawMarkdown, channel)
           
+          // note: this kind of filtering can make sense for AI Tube robot,
+          // but on the frontend UI we want to display everything
+          // also: the AI Tube robot should report those missing entries as errors, back to the user
           if (!title) {
             console.log("dataset prompt file is unparseable: the title is missing")
             continue
@@ -94,9 +108,14 @@ export async function getVideoRequestsFromChannel({
 
           if (!description) {
             //console.log("dataset prompt file is unparseable: the description is missing")
+            
+            // hmm nope, not a deal breaker actually
             // continue
           }
 
+          // note: this kind of filtering can make sense for AI Tube robot,
+          // but on the frontend UI we want to display everything
+          // also: the AI Tube robot should report those missing entries as errors, back to the user
           if (!prompt) {
             console.log("dataset prompt file is unparseable: the prompt is missing")
             continue
