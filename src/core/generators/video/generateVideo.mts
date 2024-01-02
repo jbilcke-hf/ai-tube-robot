@@ -1,5 +1,4 @@
 import { parseVideoModelName } from "../../parsers/parseVideoModelName.mts"
-import { sleep } from "../../utils/sleep.mts"
 import { defaultVideoModel } from "../../config.mts"
 import { getVideoLoraAndStyle } from "../../huggingface/utils/getVideoLoraAndStyle.mts"
 import { parseProjectionFromLoRA } from "../../parsers/parseProjectionFromLoRA.mts"
@@ -8,9 +7,31 @@ import { generateVideoWithLaVie } from "./generateVideoWithLaVie.mts"
 import { generateVideoWithHotshotXL } from "./generateVideoWithHotshotXL.mts"
 import { generateVideoWithSVD } from "./generateVideoWithSVD.mts"
 import { parseVideoOrientation } from "../../parsers/parseVideoOrientation.mts"
-import { VideoInfo } from "../../types/video.mts"
+import { VideoGenerationParams, VideoInfo } from "../../types/video.mts"
+import { generateSeed } from "../../utils/generateSeed.mts"
 
-export async function generateVideo(prompt: string, video: VideoInfo): Promise<string> {
+export async function generateVideo({
+  prompt,
+  image,
+  video,
+  seed,
+}: {
+  prompt?: string
+  image?: string
+  video: VideoInfo
+  seed?: number
+}): Promise<string> {
+
+  prompt = prompt || ""
+  image = image || ""
+
+  if (!prompt && !image) {
+    throw new Error("cannot generate a video without a prompt and/or an image")
+  }
+
+  if (image.length && image.length < 200) {
+    throw new Error("you have provided an image which appears too small to be usable")
+  }
 
   // note: this will inject the video custom style too
   const { lora, style } = await getVideoLoraAndStyle(video)
@@ -18,6 +39,8 @@ export async function generateVideo(prompt: string, video: VideoInfo): Promise<s
   const orientation = parseVideoOrientation(video)
   const projection = parseProjectionFromLoRA(lora)
 
+  seed = seed || generateSeed()
+  
   // note: LaVie will use an even lower resolution setting (512x320)
   let width = 1024
   let height = 576
@@ -39,17 +62,19 @@ export async function generateVideo(prompt: string, video: VideoInfo): Promise<s
     height = 576
   }
 
-
   // let's use what we know works well
 
   const modelParams: VideoGenerationParams = {
     prompt,
+    image,
     lora,
     style,
     orientation,
     projection,
     width,
-    height
+    height,
+    seed,
+    debug: false,
   }
 
   // now for equirectangular videos we need to have the correct image ratio of 2:1
@@ -72,33 +97,12 @@ export async function generateVideo(prompt: string, video: VideoInfo): Promise<s
     ? generateVideoWithLaVie
     : generateVideoWithSVD
 
-  let base64Video = ""
-
-  try {
-    base64Video = await generateVideoWithModel(modelParams)
-  } catch (err) {
-    try {
-      await sleep(5000)
-    // Gradio spaces often fail (out of memory etc), so let's try again
-      base64Video = await generateVideoWithModel({
-        ...modelParams,
-        prompt: prompt + ".",
-      })
-    } catch (err3) {
-      try {
-        await sleep(10000)
-        // Gradio spaces often fail (out of memory etc), so let's try one last time
-          base64Video = await generateVideoWithModel({
-            ...modelParams,
-            prompt: prompt + "..",
-          })
-        } catch (err2) {
-          base64Video = ""
-        }
-    }
-  }
+  // note: each of those underlying video generators will do their best to try the request multiple times
+  const base64Video = await generateVideoWithModel(modelParams)
+ 
   if (!base64Video.length || base64Video.length < 200) {
     return ""
   }
+
   return base64Video
 }

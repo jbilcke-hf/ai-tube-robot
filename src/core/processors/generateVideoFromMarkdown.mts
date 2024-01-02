@@ -135,7 +135,10 @@ export async function generateVideoFromMarkdown({
       // we could also generate an image, but no human is going to curate it,
       // so let's just generate things blindly
       
-      let base64Video = await generateVideo(prompt, video)
+      let base64Video = await generateVideo({
+        prompt,
+        video
+      })
       
       if (!base64Video) {
         console.log(`      | '- failed to generate a video snippet, skipping..`)

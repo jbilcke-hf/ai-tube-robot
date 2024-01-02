@@ -168,11 +168,14 @@ export type VideoInfo = {
 }
 
 export type VideoGenerationParams = {
-  prompt: string
+  prompt: string // can be empty
+  image: string // can be empty
   lora?: string
   style?: string
   orientation: VideoOrientation
   projection: VideoProjection
   width: number
   height: number
+  seed?: number
+  debug?: boolean
 }

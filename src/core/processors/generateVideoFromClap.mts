@@ -6,7 +6,6 @@ import { getUser } from "../database/users.mts"
 import { intersectWith } from "./intersectWith.mts"
 import { getVideoPrompt } from "./getVideoPrompt.mts"
 import { ClapModel } from "../clap/types.mts"
-import { generateImageSDXL } from "../generators/image/generateImageWithSDXL.mts"
 import { generateSeed } from "../utils/generateSeed.mts"
 import { extractBase64 } from "../utils/extractBase64.mts"
 import { uploadBlob } from "../huggingface/setters/uploadBlob.mts";
@@ -15,8 +14,13 @@ import { uploadClap } from "../huggingface/setters/uploadClap.mts";
 import { formatProgress } from "../utils/formatProgress.mts";
 import { formatSegmentTime } from "../utils/formatSegmentTime.mts";
 import { getRender, newRender } from "../generators/image/generateImageWithVideochain.mts";
-import { clapConfigForceRerenderingAllPreview, clapConfigUseTurboMode } from "../config.mts";
+import { clapConfigForceRerenderingAllPreviews, clapConfigForceRerenderingAllRenders, clapConfigUseTurboMode } from "../config.mts";
 import { sleep } from "../utils/sleep.mts";
+import { generateVideo } from "../generators/video/generateVideo.mts";
+import { downloadMp4ToBase64 } from "../huggingface/getters/downloadMp4ToBase64.mts";
+import { downloadFileAsBlob } from "../huggingface/datasets/downloadFileAsBlob.mts";
+import { addBase64HeaderToWebp } from "../utils/addBase64HeaderToWebp.mts";
+import { blobToWebp } from "../utils/blobToWebp.mts";
 
 // the low-level definition format used by "3rd party apps"
 export async function generateVideoFromClap({
@@ -71,25 +75,32 @@ export async function generateVideoFromClap({
     modelsById[m.id] = m
   })
 
+  const allNonRenderableSegments = allSegments.filter(s => s.category !== "preview" && s.category !== "render")
+  const allNonPreviewNonAudioSegments = allNonRenderableSegments.filter(s => s.category !== "sound" && s.category !== "music")
+
   const previewSegments = allSegments.filter(segment => segment.category === "preview")
-  // console.log(`identified ${previewSegments.length} preview segments`)
-
-  const allNonPreviewSegments = allSegments.filter(s => s.category !== "preview" && s.category !== "render")
-  const allNonPreviewNonAudioSegments = allNonPreviewSegments.filter(s => s.category !== "sound" && s.category !== "music")
-
-  // const renderingSegments = clap.clapProject.segments.filter(segment => segment.category === "render")
-  // console.log(`identified ${renderingSegments.length} rendering segments`)
-
 
   const incompletePreviewSegments = 
-    clapConfigForceRerenderingAllPreview
+    clapConfigForceRerenderingAllPreviews
     ? previewSegments
     : previewSegments.filter(s => s.status !== "completed" || !s.assetUrl)
 
   // console.log("incompletePreviewSegments (extract):", incompletePreviewSegments.slice(0, 1))
-  const nbPreviewsTotal = previewSegments.length
-  const nbPreviewsTodo = incompletePreviewSegments.length
-  const nbPreviewsDone = nbPreviewsTotal - nbPreviewsTodo
+  let nbPreviewsTotal = previewSegments.length
+  let nbPreviewsTodo = incompletePreviewSegments.length
+  let nbPreviewsDone = nbPreviewsTotal - nbPreviewsTodo
+
+  const renderSegments = allSegments.filter(segment => segment.category === "render")
+
+  const incompleteRenderSegments = 
+    clapConfigForceRerenderingAllRenders
+    ? renderSegments
+    : renderSegments.filter(s => s.status !== "completed" || !s.assetUrl)
+
+  // console.log("incompletePreviewSegments (extract):", incompletePreviewSegments.slice(0, 1))
+  let nbRendersTotal = renderSegments.length
+  let nbRendersTodo = incompleteRenderSegments.length
+  let nbRendersDone = nbRendersTotal - nbRendersTodo
 
 
   console.log(` |- we have ${nbPreviewsTodo} previews to generate`)
@@ -97,15 +108,40 @@ export async function generateVideoFromClap({
   // now, well, we need to check if of those preview segments and generate those which are missing
 
   let nbPreviewsGenerated = 0
+  let nbRendersGenerated = 0
+
+  let previewProgress = formatProgress(
+    nbPreviewsDone + nbPreviewsGenerated,
+    nbPreviewsTotal
+  )
+
+  let renderProgress = formatProgress(
+    nbRendersDone + nbRendersGenerated,
+    nbRendersTotal
+  )
+
+  let totalProgress = formatProgress(
+    nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated,
+    nbPreviewsTotal + nbRendersTotal
+  )
+
   for (const segment of incompletePreviewSegments) {
     // console.log(`got a segment to complete!`, segment.id)
     // so, completing a segment is a bit tricky, we need to search through all the segments
     // the ones that intersect with the preview
     
-
-    const previewProgress = formatProgress(nbPreviewsDone + nbPreviewsGenerated, nbPreviewsTotal)
-
-    console.log(` |- progress: ${previewProgress} (done ${nbPreviewsDone + nbPreviewsGenerated }/${nbPreviewsTotal})`)
+ 
+    previewProgress = formatProgress(
+      nbPreviewsDone + nbPreviewsGenerated,
+      nbPreviewsTotal
+    )
+  
+    totalProgress = formatProgress(
+      nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated,
+      nbPreviewsTotal + nbRendersTotal
+    )
+    console.log(` |- storyboards: ${nbPreviewsDone + nbPreviewsGenerated}/${nbPreviewsTotal} (${previewProgress})`)
+    console.log(` |- total rendering progress: ${totalProgress}`)
     console.log(` |`)
     console.log(` |-${formatSegmentTime(segment)}`)
     const intersectingSegments = intersectWith(allNonPreviewNonAudioSegments, segment)
@@ -175,7 +211,7 @@ export async function generateVideoFromClap({
         previewAsBase64 = renderedPreview.assetUrl
 
         process.stdout.write("\n") // important too
-        console.log(` | |- generation completed`) // ("${previewAsBase64.slice(0, 60)}"...)`)
+        // console.log(` | |- generation completed`) // ("${previewAsBase64.slice(0, 60)}"...)`)
         break
       } else {
         process.stdout.write(".") // simulate a "loader.."
@@ -231,7 +267,7 @@ export async function generateVideoFromClap({
       uploadFilePath: clapProjectPath,
       credentials,
     })
-    console.log(` | '- success!`)
+    console.log(` | '- done`)
     console.log(` |`)
 
     nbPreviewsGenerated++
@@ -244,13 +280,128 @@ export async function generateVideoFromClap({
     */
   }
 
-  // ok, so all of this was just a pre-requisite, in case it was not generated beforehand
-  // we now need to generate the actual videos!
+  console.log(` |`)
 
-  const previewProgress = formatProgress(nbPreviewsDone + nbPreviewsGenerated, nbPreviewsTotal)
+  const nbPreviewGenerated = nbPreviewsDone + nbPreviewsGenerated
+  const nbPreviewExpected = nbPreviewsTotal
+  
+  if (nbPreviewGenerated < nbPreviewExpected) {
+    console.log(` '- we still have ${nbPreviewExpected - nbPreviewGenerated} previews to render, but we will try again later`)
+    return
+  }
 
-  console.log(` |- progress: ${previewProgress} (done ${nbPreviewsDone + nbPreviewsGenerated}/${nbPreviewsTotal})`)
-  console.log(` '- finished`)
+  console.log(` |- total rendering progress: ${totalProgress}`)
+
+  // ----- a "render segment" is a final rendering output video chunk ------
+
+
+  console.log(` |- we have ${nbRendersTotal} video chunks to generate`)
+  // now this is where things are going to get tricky, because we will need to generate
+  // plenty of assets, like sound effect, dialogue, music..
+
+  // but let's start with some silent film first
+
+  for (const segment of incompleteRenderSegments) {
+    // console.log(`got a segment to complete!`, segment.id)
+    // so, completing a segment is a bit tricky, we need to search through all the segments
+    // the ones that intersect with the preview
+
+    renderProgress = formatProgress(
+      nbRendersDone + nbRendersGenerated,
+      nbRendersTotal
+    )
+  
+    totalProgress = formatProgress(
+      nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated,
+      nbPreviewsTotal + nbRendersTotal
+    )
+    
+    console.log(` |- video chunks: ${nbRendersDone + nbRendersGenerated}/${nbRendersTotal} (${renderProgress})`)
+    console.log(` |- total rendering progress: ${totalProgress}`)
+    console.log(` |`)
+    console.log(` |-${formatSegmentTime(segment)}`)
+
+    /*
+    const intersectingSegments = intersectWith(allNonPreviewNonAudioSegments, segment)
+    // console.log(`found ${intersectingSegments.length} intersecting segments`)
+
+    // compute the video prompt for the active segments
+    // this is not a very expensive function to run, it only concatenates the few tracks we got
+    const videoPrompt = getVideoPrompt(intersectingSegments, modelsById, extraPositivePrompt)
+    */
+    
+    // console.log(`prompt: ${videoPrompt}`)
+    segment.seed = generateSeed()
+
+
+    process.stdout.write(` | |- generating video chunk..`)
+
+    // we grab the first preview we see in this range
+    const previewSegmentsImages = intersectWith(previewSegments, segment).filter(s => s.assetUrl)
+   
+
+    if (!previewSegmentsImages.length) {
+      console.log(" | |- no preview image to use, so we will make it ourselves")
+      // it is possible that there is no preview, as in the future
+      // we might want to generate unsupervised movies
+      // if that happens, we can just let the video generate its output from the prompt only
+      const intersectingSegments = intersectWith(allNonPreviewNonAudioSegments, segment)
+      // console.log(`found ${intersectingSegments.length} intersecting segments`)
+
+      const videoChunk = await generateVideo({
+        prompt: getVideoPrompt(intersectingSegments, modelsById, extraPositivePrompt),
+        seed: segment.seed,
+        video,
+      })
+      console.log(" | |- generated a new video using a brand new image")
+    } else {
+      // otherwise we generate using the preview image to save time
+      // also note that normally there is only one match, but maybe in the future
+      // there will be multiple storyboards per video chunk
+      const previewImage = previewSegmentsImages[0]
+
+      const domain = `https://huggingface.co`
+      const repo = `datasets/${channel.datasetUser}/${channel.datasetName}`
+
+      // this will contain something like this
+      // /projects/2042f517-e8a0-48a8-bf3e-89e5e8c24962/previews/5757e979-b5e6-456c-a509-7ca6903d18c6.webp
+      const repoPath = previewImage.assetUrl.split("/blob/main").pop()
+      const extension = repoPath.split(".").pop()
+
+      console.log(" | |- downloading the preview image..")
+
+      // we download the clap file (which might be in a private repo)
+      const blob = await downloadFileAsBlob({
+        repo: `datasets/${channel.datasetUser}/${channel.datasetName}`,
+        path: repoPath,
+        apiKey: credentials.accessToken,
+        expectedMimeType: `image/${extension}`
+      })
+
+      console.log(" | |- generating the video (might take a while)")
+
+      const videoChunk = await generateVideo({
+        image: await blobToWebp(blob),
+        seed: segment.seed,
+        video,
+      })
+      console.log(" | |- generated a video using the preview image")
+    }
+  }
+
+  const nbTotalGenerated = nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated
+  const nbTotalExpected = nbPreviewsTotal + nbRendersTotal
+
+  totalProgress = formatProgress(nbTotalGenerated, nbTotalExpected)
+
+  console.log(` |`)
+
+  console.log(` |- total rendering progress: ${totalProgress}`)
+
+  if (nbTotalGenerated < nbTotalExpected) {
+    console.log(` '- we still have ${nbTotalExpected - nbTotalGenerated} videos to render, but we will try again later`)
+    return
+  }
 
   return false
 }

@@ -64,8 +64,12 @@ export const quickTestAndDryRun = true
 export const ignoreChangesMadeToVideoRequests = true
 
 // this is used for debugging clap files
-// if set to true, this will ignore previews that are already completed, and generate them again
-export const clapConfigForceRerenderingAllPreview = true
+// if set to true, this will ignore previews (images) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllPreviews = true
+
+// this is used for debugging clap files
+// if set to true, this will ignore renders (videos) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllRenders = true
 
 // this is used for debugging clap files
 // if set to true, this will use the "turbo" mode which is fast
