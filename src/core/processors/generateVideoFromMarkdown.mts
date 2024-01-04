@@ -100,11 +100,11 @@ export async function generateVideoFromMarkdown({
   for (const { text, audio: audioAsBase64 } of scenes) {
     if (!text.length || text.length < 3) {
       console.log(`    '-- skipping invalid scene (bad or no text: "${text}")`)
-      return false
+      continue
     }
     if (!videoVoice.muted && (!audioAsBase64.length || audioAsBase64.length < 200)) {
       console.log(`    '-- skipping invalid scene (bad or no audio: "${audioAsBase64.slice(0, 60)}...")`)
-      return false
+      continue
     }
     //console.log("    | ")
     console.log(`    |- generating shots for scene "${text.slice(0, 60)}...)`)
@@ -116,8 +116,8 @@ export async function generateVideoFromMarkdown({
 
     if (!prompts.length) {
       console.log(`    | '- no prompt generated, even after trying harder.. zephyr fail?`)
-      await sleep(1000)
-      return false
+      await sleep(2000)
+      continue
     }
     console.log("    '-. ")
     console.log(`      |- generated prompt${prompts.length > 1 ? 's' : ''} for ${prompts.length} shot${prompts.length > 1 ? 's' : ''}`)
@@ -129,7 +129,7 @@ export async function generateVideoFromMarkdown({
     for (const prompt of prompts) {
       if (!prompt.length || prompt.length < 3) {
         console.log(`      '-- skipping invalid shot prompt "${prompt}"`)
-        return false
+        continue
       }
       console.log(`      |-- generating shot from prompt "${prompt.slice(0, 60)}..."`)
       // we could also generate an image, but no human is going to curate it,
@@ -142,7 +142,7 @@ export async function generateVideoFromMarkdown({
       
       if (!base64Video) {
         console.log(`      | '- failed to generate a video snippet, skipping..`)
-        return false
+        continue
       }
       if (!skipVideoInterpolation) {
         // const nbFramesPerSecond = 60
@@ -184,11 +184,13 @@ export async function generateVideoFromMarkdown({
             console.error(err)
             console.log(`      | '- failed to interpolate a video snippet (this sucks too much, so we discard the whole thing)`)
             base64Video = ""
-            return false
           }
         }
       }
-      microVideoChunksBase64.push(base64Video)
+
+      if (base64Video) {
+        microVideoChunksBase64.push(base64Video)
+      }
       console.log(`      | |`)
       console.log(`      | '- success!`)
       // console.log(`      | '- generated shot! got a nice video "${base64Video.slice(0, 30)}..."`)
