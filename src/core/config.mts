@@ -54,8 +54,9 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 // but you can set them to true on your own machine
 
 
-// 
-export const quickTestAndDryRun = true
+// this is probably the only thing you need to set to true while developping
+// this will reduce the length fo the video to about 3 secs
+export const quickTestAndDryRun = false
 
 
 // by default, when someone changes their video request title, prompt etc..
@@ -64,12 +65,16 @@ export const quickTestAndDryRun = true
 export const ignoreChangesMadeToVideoRequests = true
 
 // this is used for debugging clap files
-// if set to true, this will ignore previews (images) that are already completed, and generate them again
-export const clapConfigForceRerenderingAllPreviews = true
+// if set to true, this will ignore previews (image files) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllPreviews = false
 
 // this is used for debugging clap files
-// if set to true, this will ignore renders (videos) that are already completed, and generate them again
-export const clapConfigForceRerenderingAllRenders = true
+// if set to true, this will ignore renders (video files) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllRenders = false
+
+// this is used for debugging clap files
+// if set to true, this will ignore dialogues (audio files) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllDialogues = true
 
 // this is used for debugging clap files
 // if set to true, this will use the "turbo" mode which is fast

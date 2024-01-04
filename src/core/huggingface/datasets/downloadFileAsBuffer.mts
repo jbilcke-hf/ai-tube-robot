@@ -1,8 +1,9 @@
+
 import { downloadFile } from "../../../libraries/huggingface/hub/src/index.mts"
 
 import { getCredentials } from "../../auth/getCredentials.mts"
 
-export async function downloadFileAsBlob({
+export async function downloadFileAsBuffer({
   repo,
   path,
   apiKey,
@@ -32,7 +33,7 @@ export async function downloadFileAsBlob({
    * False by default
    */
   neverThrow?: boolean
-}): Promise<Blob> {
+}): Promise<Buffer> {
   try {
     const { credentials } = await getCredentials(apiKey)
 
@@ -51,15 +52,15 @@ export async function downloadFileAsBlob({
     if (!response) {
       throw new Error("missing response")
     }
-    const blob = await response.blob()
 
-    return blob
+    const arrayBuffer = await response.arrayBuffer()
+
+    return Buffer.from(arrayBuffer)
   } catch (err) {
     if (neverThrow) {
-      console.error(`downloadFileAsBlob():`, err)
+      console.error(`downloadFileAsBuffer():`, err)
 
-      const blobResult = new Blob([""], { type: expectedMimeType })
-      return blobResult
+      return Buffer.from([])
     } else {
       throw err
     }

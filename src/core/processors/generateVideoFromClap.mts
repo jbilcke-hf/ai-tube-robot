@@ -14,13 +14,13 @@ import { uploadClap } from "../huggingface/setters/uploadClap.mts";
 import { formatProgress } from "../utils/formatProgress.mts";
 import { formatSegmentTime } from "../utils/formatSegmentTime.mts";
 import { getRender, newRender } from "../generators/image/generateImageWithVideochain.mts";
-import { clapConfigForceRerenderingAllPreviews, clapConfigForceRerenderingAllRenders, clapConfigUseTurboMode } from "../config.mts";
+import { clapConfigForceRerenderingAllDialogues, clapConfigForceRerenderingAllPreviews, clapConfigForceRerenderingAllRenders, clapConfigUseTurboMode } from "../config.mts";
 import { sleep } from "../utils/sleep.mts";
 import { generateVideo } from "../generators/video/generateVideo.mts";
-import { downloadMp4ToBase64 } from "../huggingface/getters/downloadMp4ToBase64.mts";
-import { downloadFileAsBlob } from "../huggingface/datasets/downloadFileAsBlob.mts";
-import { addBase64HeaderToWebp } from "../utils/addBase64HeaderToWebp.mts";
-import { blobToWebp } from "../utils/blobToWebp.mts";
+import { downloadFileAsBuffer } from "../huggingface/datasets/downloadFileAsBuffer.mts";
+import { bufferToWebp } from "../utils/bufferToWebp.mts";
+import { uploadMp4 } from "../huggingface/setters/uploadMp4.mts";
+import { writeBase64ToFile } from "../files/writeBase64ToFile.mts";
 
 // the low-level definition format used by "3rd party apps"
 export async function generateVideoFromClap({
@@ -101,7 +101,19 @@ export async function generateVideoFromClap({
   let nbRendersTotal = renderSegments.length
   let nbRendersTodo = incompleteRenderSegments.length
   let nbRendersDone = nbRendersTotal - nbRendersTodo
+  
+  const dialogueSegments = allSegments.filter(segment => segment.category === "dialogue")
 
+  const incompleteDialogueSegments = 
+    clapConfigForceRerenderingAllDialogues
+    ? dialogueSegments
+    : dialogueSegments.filter(s => s.status !== "completed" || !s.assetUrl)
+  
+  let nbDialoguesTotal = dialogueSegments.length
+  let nbDialoguesTodo = incompleteDialogueSegments.length
+  let nbDialoguesDone = nbDialoguesTotal - nbDialoguesTodo
+  
+  // ---------------------------------------------------------------
 
   console.log(` |- we have ${nbPreviewsTodo} previews to generate`)
 
@@ -109,6 +121,7 @@ export async function generateVideoFromClap({
 
   let nbPreviewsGenerated = 0
   let nbRendersGenerated = 0
+  let nbDialoguesGenerated = 0
 
   let previewProgress = formatProgress(
     nbPreviewsDone + nbPreviewsGenerated,
@@ -120,9 +133,16 @@ export async function generateVideoFromClap({
     nbRendersTotal
   )
 
+  let dialogueProgress = formatProgress(
+    nbDialoguesDone + nbDialoguesGenerated,
+    nbDialoguesTotal
+  )
+
   let totalProgress = formatProgress(
-    nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated,
-    nbPreviewsTotal + nbRendersTotal
+    nbPreviewsDone + nbPreviewsGenerated + 
+    nbRendersDone + nbRendersGenerated +
+    nbDialoguesDone + nbDialoguesGenerated,
+    nbPreviewsTotal + nbRendersTotal + nbDialoguesTotal
   )
 
   for (const segment of incompletePreviewSegments) {
@@ -198,11 +218,15 @@ export async function generateVideoFromClap({
       nbSteps: clapConfigUseTurboMode ? 8 : 70,
     })
 
+    segment.status = "pending"
+    segment.renderId = pendingPreviewRequest.renderId
+
     let previewAsBase64 = ""
+
     // wait up to 2 minutes (120 x 1000ms)
     for (let nbAttempts = 0; nbAttempts < 120; nbAttempts++) {
       await sleep(500) // we can be hardcore with Videochain, 500ms between requests is ezpz
-      const renderedPreview = await getRender(pendingPreviewRequest.renderId)
+      const renderedPreview = await getRender(segment.renderId )
       if (renderedPreview.status === "error") {
         break
       } else if (renderedPreview.status === "completed") {
@@ -334,11 +358,12 @@ export async function generateVideoFromClap({
     segment.seed = generateSeed()
 
 
-    process.stdout.write(` | |- generating video chunk..`)
+    console.log(` | |- generating video chunk..`)
 
     // we grab the first preview we see in this range
     const previewSegmentsImages = intersectWith(previewSegments, segment).filter(s => s.assetUrl)
    
+    let videoChunk = ""
 
     if (!previewSegmentsImages.length) {
       console.log(" | |- no preview image to use, so we will make it ourselves")
@@ -348,7 +373,7 @@ export async function generateVideoFromClap({
       const intersectingSegments = intersectWith(allNonPreviewNonAudioSegments, segment)
       // console.log(`found ${intersectingSegments.length} intersecting segments`)
 
-      const videoChunk = await generateVideo({
+      videoChunk = await generateVideo({
         prompt: getVideoPrompt(intersectingSegments, modelsById, extraPositivePrompt),
         seed: segment.seed,
         video,
@@ -370,38 +395,137 @@ export async function generateVideoFromClap({
 
       console.log(" | |- downloading the preview image..")
 
+      // TODO: support 3rd party stored images, too!
+
       // we download the clap file (which might be in a private repo)
-      const blob = await downloadFileAsBlob({
+      const buffer = await downloadFileAsBuffer({
         repo: `datasets/${channel.datasetUser}/${channel.datasetName}`,
         path: repoPath,
         apiKey: credentials.accessToken,
         expectedMimeType: `image/${extension}`
       })
 
+      const previewImageBase64 = await bufferToWebp(buffer)
+      // console.log("previewImageBase64:", `${previewImageBase64 || ""}`.slice(0, 80))
+
       console.log(" | |- generating the video (might take a while)")
 
-      const videoChunk = await generateVideo({
-        image: await blobToWebp(blob),
+      videoChunk = await generateVideo({
+        image: previewImageBase64,
         seed: segment.seed,
         video,
       })
       console.log(" | |- generated a video using the preview image")
+
     }
+
+    // console.log("videoChunk:", videoChunk.slice(0, 80))
+
+    const rawDataBase64 = videoChunk.split(";base64,").pop()
+    const buffer = Buffer.from(rawDataBase64, "base64")
+    const blob = new Blob([buffer])
+
+    const videoId = uuidv4()
+
+    const repo = `datasets/${channel.datasetUser}/${channel.datasetName}`
+    console.log(` | |- saving rendered video..`)
+    
+    const assetUrl = await uploadBlob({
+      blob,
+      repo,
+      uploadFilePath: `projects/${video.id}/videos/${videoId}.mp4`,
+      credentials,
+    })
+
+    if (!assetUrl) {
+      segment.status = "error"
+      segment.assetUrl = ""
+      continue
+    }
+
+    segment.assetUrl = assetUrl
+    segment.status = "completed"
+    
+    // console.log("uploaded preview to: ", segment.assetUrl)
+
+    // console.log("we also save the clap project..")
+    console.log(` | |- saving project..`)
+
+    await uploadClap({
+      clapProject,
+      repo,
+      uploadFilePath: clapProjectPath,
+      credentials,
+    })
+    console.log(` | '- done`)
+    console.log(` |`)
+
+    nbRendersGenerated++
+
+    /*
+    if (nbRendersGenerated >= 7) {
+      console.log(` |- debug mode: we force a stop at ${nbRendersGenerated}`)
+      break
+    }
+    */
   }
-
-  const nbTotalGenerated = nbPreviewsDone + nbPreviewsGenerated + nbRendersDone + nbRendersGenerated
-  const nbTotalExpected = nbPreviewsTotal + nbRendersTotal
-
-  totalProgress = formatProgress(nbTotalGenerated, nbTotalExpected)
 
   console.log(` |`)
 
-  console.log(` |- total rendering progress: ${totalProgress}`)
-
-  if (nbTotalGenerated < nbTotalExpected) {
-    console.log(` '- we still have ${nbTotalExpected - nbTotalGenerated} videos to render, but we will try again later`)
+  const nbRenderGenerated = nbRendersDone + nbRendersGenerated
+  const nbRenderExpected = nbRendersTotal
+  
+  if (nbRenderGenerated < nbRenderExpected) {
+    console.log(` '- we still have ${nbRenderExpected - nbRenderGenerated} videos to render, but we will try again later`)
     return
   }
+
+  console.log(` |- total rendering progress: ${totalProgress}`)
+  
+  // the story server I made for the bedtime factory and AI Tube vids isn't enough for movie making:
+  // it doesn't have enough flexiblity and control over the voices
+  
+  /*
+  for (const segment of incompleteDialogueSegments) {
+
+    dialogueProgress = formatProgress(
+      nbDialoguesDone + nbDialoguesGenerated,
+      nbDialoguesTotal
+    )
+  
+    totalProgress = formatProgress(
+      nbPreviewsDone + nbPreviewsGenerated +
+      nbRendersDone + nbRendersGenerated +
+      nbDialoguesDone + nbDialoguesGenerated,
+      nbPreviewsTotal + nbRendersTotal + nbDialoguesTotal
+    )
+    
+    console.log(` |- dialogues: ${nbDialoguesDone + nbDialoguesGenerated}/${nbDialoguesTotal} (${dialogueProgress})`)
+    console.log(` |- total rendering progress: ${totalProgress}`)
+    console.log(` |`)
+    console.log(` |-${formatSegmentTime(segment)}`)
+
+    // we are going to need the character voice id
+    // if the character voice id isn't available we can either create it on the fly (if possible)
+    // or use one of the voices from the library
+    // console.log(`found ${intersectingSegments.length} intersecting segments`)
+
+    // now, ideally we should also factor in geospatial information about the character
+    // to determine at least the volume, add some effect (phone, speakers..)
+
+    // we also need to mood, and style: shouting, sad, crying etc
+
+    // const moodPrompt = getMoodPrompt(intersectingSegments, modelsById)
+    
+    // console.log(`prompt: ${videoPrompt}`)
+    segment.seed = generateSeed()
+    process.stdout.write(` | |- generating preview..`)
+
+  }
+  */
+
+  console.log(` '- that's all for today!`)
+
 
   return false
 }

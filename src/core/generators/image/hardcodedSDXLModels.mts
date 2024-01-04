@@ -88,6 +88,16 @@ export const aiClipFactoryModels: SDXLModel[] = [
 
 export const loraTheExplorerModels: SDXLModel[] = [
   {
+      "image": "",
+      "title": "Mickey-1928",
+      "repo": "Pclanglais/Mickey-1928",
+      "trigger_word": "Mickey",
+      "weights": "pytorch_lora_weights.safetensors",
+      "is_compatible": true,
+      "likes": 0,
+      "downloads": 0
+  },
+  {
       "image": "images/pixel-art-xl.jpeg",
       "title": "Pixel Art XL",
       "repo": "nerijs/pixel-art-xl",

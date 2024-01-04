@@ -9,10 +9,14 @@ import { VideoInfo } from "../../types/video.mts"
 export async function uploadMp4({
   video,
   filePath,
+  repo = `datasets/${adminUsername}/ai-tube-index`,
+  prefix = "videos/",
   suffix = "",
 }: {
   video: VideoInfo
   filePath: string
+  repo?: string
+  prefix?: string
   suffix?: string
 }): Promise<string> {
   if (!filePath) {
@@ -26,11 +30,11 @@ export async function uploadMp4({
   const buffer = await fs.readFile(filePath)
   const blob = new Blob([buffer])
 
-  const uploadFilePath = `videos/${video.id}${suffix || ""}.mp4`
+  const uploadFilePath = `${prefix}${video.id}${suffix || ""}.mp4`
 
   await uploadFile({
 	  credentials: adminCredentials,
-    repo: `datasets/${adminUsername}/ai-tube-index`,
+    repo,
     file: {
       path: uploadFilePath,
       content: blob as any,
@@ -38,5 +42,5 @@ export async function uploadMp4({
     commitTitle: "[robot] Add new MP4 video file",
   })
 
-  return `https://huggingface.co/datasets/jbilcke-hf/ai-tube-index/resolve/main/${uploadFilePath}`
+  return `https://huggingface.co/${repo}/resolve/main/${uploadFilePath}`
 }

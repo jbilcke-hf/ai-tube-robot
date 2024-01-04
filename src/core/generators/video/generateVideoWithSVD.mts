@@ -6,6 +6,7 @@ import { adminApiKey } from "../../config.mts"
 import { getNegativePrompt, getPositivePrompt } from "../../utils/promptUtilities.mts"
 import { VideoGenerationParams } from "../../types/video.mts"
 import { generateVideoWithSVDFromImage } from "./generateVideoWithSVDFromImage.mts"
+import { convertImageToPng } from "../../utils/convertImageToPng.mts"
 
 // this generates a base64 video
 export const generateVideoWithSVD = async ({
@@ -54,6 +55,14 @@ export const generateVideoWithSVD = async ({
 
       guidanceScale: 8,
     })
+  }
+
+  // unfortunately, SVD doesn't support WebP as input
+  // so we convert it first to PNG
+  if (image.startsWith('data:image/webp;base64,')) {
+    // console.log("converting image to png")
+    image = await convertImageToPng(image)
+    // console.log("converted image to png")
   }
  
   return generateVideoWithSVDFromImage({
