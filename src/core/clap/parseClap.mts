@@ -50,7 +50,7 @@ export async function parseClap(inputStringOrBlob: string | Blob): Promise<ClapP
     width: getValidNumber(maybeClapMeta.width, 256, 8192, 1024),
     height: getValidNumber(maybeClapMeta.height, 256, 8192, 576),
     defaultVideoModel: typeof maybeClapMeta.defaultVideoModel === "string" ? maybeClapMeta.defaultVideoModel : "SVD",
-    extraPositivePrompt: Array.isArray(maybeClapMeta.extraPositivePrompt) ? maybeClapMeta.extraPositivePrompt : [],
+    extraPositivePrompt: Array.isArray(maybeClapMeta.extraPositivePrompt) ? maybeClapMeta.extraPositivePrompt : []
   }
 
   /*
@@ -83,31 +83,39 @@ export async function parseClap(inputStringOrBlob: string | Blob): Promise<ClapP
 
   const clapModels: ClapModel[] = maybeModels.map(({
     id,
-    imageType,
-    audioType,
     category,
     triggerName,
     label,
     description,
     author,
     thumbnailUrl,
-    storageUrl,
-    imagePrompt,
-    audioPrompt,
+    seed,
+    assetSourceType,
+    assetUrl,
+    age,
+    gender,
+    region,
+    appearance,
+    voiceVendor,
+    voiceId,
   }) => ({
     // TODO: we should verify each of those, probably
     id,
-    imageType,
-    audioType,
     category,
     triggerName,
     label,
     description,
     author,
     thumbnailUrl,
-    storageUrl,
-    imagePrompt,
-    audioPrompt,
+    seed,
+    assetSourceType,
+    assetUrl,
+    age,
+    gender,
+    region,
+    appearance,
+    voiceVendor,
+    voiceId,
   }))
 
 

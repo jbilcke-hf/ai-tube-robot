@@ -56,13 +56,20 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 
 // this is probably the only thing you need to set to true while developping
 // this will reduce the length fo the video to about 3 secs
-export const quickTestAndDryRun = false
+export const quickTestAndDryRun = true
+
+// this one is useful too: set to tru to re-generate the index queue
+export const regenerateTheIndexQueueAndThatsAll = false
 
 
 // by default, when someone changes their video request title, prompt etc..
 // then the video will be re-generated
 // this can be disabled by setting the following setting to "true"
 export const ignoreChangesMadeToVideoRequests = true
+
+// this is used for debugging clap files
+// if set to true, this will ignore previews (image files) that are already completed, and generate them again
+export const clapConfigForceRerenderingAllModels = false
 
 // this is used for debugging clap files
 // if set to true, this will ignore previews (image files) that are already completed, and generate them again
@@ -107,10 +114,10 @@ export const keepTemporaryFiles = true
 // sometimes we want fine control over the queue,
 // so we deploy the bot with the skipProcessingChannels=true
 // that way we are 100% of what will be processed
-export const skipProcessingChannels = true
+export const skipProcessingChannels = !regenerateTheIndexQueueAndThatsAll
 
 // this is the main job! be sure of if you want to skip it or not!
-export const skipProcessingQueue = false
+export const skipProcessingQueue = regenerateTheIndexQueueAndThatsAll
 
 // if you set it to true, AI Tube Robot will ignore anything related to pre-release projects
 export const skipPreReleaseStuff = false

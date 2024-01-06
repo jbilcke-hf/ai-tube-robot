@@ -21,6 +21,10 @@ import { downloadFileAsBuffer } from "../huggingface/datasets/downloadFileAsBuff
 import { bufferToWebp } from "../utils/bufferToWebp.mts";
 import { uploadMp4 } from "../huggingface/setters/uploadMp4.mts";
 import { writeBase64ToFile } from "../files/writeBase64ToFile.mts";
+import { getVoice } from "../generators/voice/voices.mts";
+import { generateImageSDXL } from "../generators/image/generateImageWithSDXL.mts";
+import { getClapAssetSourceType } from "../utils/getClapAssetSourceType.mts";
+import { getCharacterPrompt } from "../huggingface/utils/getCharacterPrompt.mts";
 
 // the low-level definition format used by "3rd party apps"
 export async function generateVideoFromClap({
@@ -50,6 +54,8 @@ export async function generateVideoFromClap({
 
   const clapProjectPath = video.clapUrl.split("/").pop()
 
+  const repo = `datasets/${channel.datasetUser}/${channel.datasetName}`
+
   // let's get our work started!
   const {
     videoRequest,
@@ -71,8 +77,66 @@ export async function generateVideoFromClap({
   const extraPositivePrompt = clapProject.meta.extraPositivePrompt
 
   const modelsById: Record<string, ClapModel> = {}
-  clapProject.models.forEach(m => {
-    modelsById[m.id] = m
+
+
+  console.log(` |- we have ${clapProject.models} models to setup`)
+  console.log(` |`)
+
+  for (const model of clapProject.models) {
+    console.log(` |-[${model.triggerName}] (${model.category})`)
+
+    model.seed ||= generateSeed()
+
+    if (model.category === "characters") {
+      if (model.voiceVendor === "ElevenLabs") {
+        const voice = getVoice({
+          age: model.age,
+          gender: model.gender,
+          region: model.region
+        })
+
+        model.voiceId = voice.voiceId
+
+        console.log(` | |- model has a 11Labs voice: ${model.voiceId}`) 
+
+      }
+    
+      if (model.assetSourceType === "EMPTY" || !model.assetUrl) {
+        model.assetUrl = await generateImageSDXL({
+          positivePrompt: getCharacterPrompt(model),
+          width: 1024,
+          height: 1024,
+          seed: model.seed,
+          nbSteps: 70
+        })
+        model.assetSourceType = getClapAssetSourceType(model.assetUrl)
+
+        console.log(` | |- saving model..`)
+
+        await uploadClap({
+          clapProject,
+          repo,
+          uploadFilePath: clapProjectPath,
+          credentials,
+        })
+      }
+
+
+      console.log(` | |- model has a face: ${model.assetUrl.slice(0, 50)}`) 
+    }
+
+    modelsById[model.id] = model
+        
+    console.log(` | '- ready`)
+  }
+
+  console.log(` | |- saving model..`)
+
+  await uploadClap({
+    clapProject,
+    repo,
+    uploadFilePath: clapProjectPath,
+    credentials,
   })
 
   const allNonRenderableSegments = allSegments.filter(s => s.category !== "preview" && s.category !== "render")
@@ -261,7 +325,6 @@ export async function generateVideoFromClap({
     
     const previewId = uuidv4()
 
-    const repo = `datasets/${channel.datasetUser}/${channel.datasetName}`
     console.log(` | |- saving preview..`)
     
     const assetUrl = await uploadBlob({

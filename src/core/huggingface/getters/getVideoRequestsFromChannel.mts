@@ -73,7 +73,7 @@ export async function getVideoRequestsFromChannel({
             console.log("dataset clap file is incomplete: the label is missing")
             continue
           }
-          console.log("got a clap file:", clap.clapProject.meta)
+          console.log(`got a clap file (${clap.clapProject.meta.title})`)
 
           videos[clap.videoRequest.id] = clap.videoRequest
         } else if (filePath.startsWith("prompt_") && filePath.endsWith(".md")) {

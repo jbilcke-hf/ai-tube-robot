@@ -47,7 +47,7 @@ export function getVideoPrompt(
 
       const characterTrigger = model?.triggerName || ""
       const characterLabel = model?.label || ""
-      const characterDescription = model?.imagePrompt || ""
+      const characterDescription = model?.imageContent || ""
       const dialogueLine = segment?.prompt || ""
       
       if (characterDescription) {
