@@ -82,8 +82,10 @@ export const generateVideoWithSVDFromImage = async ({
 
       return base64Video
     } catch (err) {
-      console.error(`failed to call the SVD API:`)
-      console.error(err)
+      if (debug) {
+        console.error(`failed to call the SVD API:`)
+        console.error(err)
+      }
       throw err
     }
   }

@@ -207,6 +207,7 @@ export type UpscaleImageParams = {
   imageAsBase64: string
   prompt?: string
   scaleFactor?: number
+  debug?: boolean
 }
 
 export type UserInfo = {

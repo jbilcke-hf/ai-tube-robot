@@ -25,6 +25,8 @@ import { getVoice } from "../generators/voice/voices.mts";
 import { generateImageSDXL } from "../generators/image/generateImageWithSDXL.mts";
 import { getClapAssetSourceType } from "../utils/getClapAssetSourceType.mts";
 import { getCharacterPrompt } from "../huggingface/utils/getCharacterPrompt.mts";
+import { formatVoice } from "../utils/formatVoice.mts";
+import { formatModel } from "../utils/formatModel.mts";
 
 // the low-level definition format used by "3rd party apps"
 export async function generateVideoFromClap({
@@ -79,10 +81,11 @@ export async function generateVideoFromClap({
   const modelsById: Record<string, ClapModel> = {}
 
 
-  console.log(` |- we have ${clapProject.models} models to setup`)
+  console.log(` |- we have ${clapProject.models.length} models to setup`)
   console.log(` |`)
 
   for (const model of clapProject.models) {
+ 
     console.log(` |-[${model.triggerName}] (${model.category})`)
 
     model.seed ||= generateSeed()
@@ -127,7 +130,8 @@ export async function generateVideoFromClap({
 
     modelsById[model.id] = model
         
-    console.log(` | '- ready`)
+    console.log(` | '- done`)
+    console.log(` |`)
   }
 
   console.log(` | |- saving model..`)
@@ -545,10 +549,7 @@ export async function generateVideoFromClap({
 
   console.log(` |- total rendering progress: ${totalProgress}`)
   
-  // the story server I made for the bedtime factory and AI Tube vids isn't enough for movie making:
-  // it doesn't have enough flexiblity and control over the voices
-  
-  /*
+  console.log(` |`)
   for (const segment of incompleteDialogueSegments) {
 
     dialogueProgress = formatProgress(
@@ -562,7 +563,9 @@ export async function generateVideoFromClap({
       nbDialoguesDone + nbDialoguesGenerated,
       nbPreviewsTotal + nbRendersTotal + nbDialoguesTotal
     )
-    
+
+    const model = modelsById[segment.modelId]
+
     console.log(` |- dialogues: ${nbDialoguesDone + nbDialoguesGenerated}/${nbDialoguesTotal} (${dialogueProgress})`)
     console.log(` |- total rendering progress: ${totalProgress}`)
     console.log(` |`)
@@ -582,13 +585,27 @@ export async function generateVideoFromClap({
     
     // console.log(`prompt: ${videoPrompt}`)
     segment.seed = generateSeed()
-    process.stdout.write(` | |- generating preview..`)
 
+    console.log(` | |- model ${formatModel(model)}`)
+
+    const voice = getVoice({ voiceId: model?.voiceId })
+
+    if (model.voiceId) {
+      console.log(` | |- found voice config: ${formatVoice(voice)}`)
+    } else {
+      console.log(` | |- no voice config, will use: ${formatVoice(voice)}`)
+    }
+
+    console.log(` | |- generating dialogue: "${segment.prompt}"`)
+
+    nbDialoguesDone++
+    console.log(` | '- done`)
+    console.log(` |`)
   }
-  */
+
 
   console.log(` '- that's all for today!`)
-
+  console.log("")
 
   return false
 }

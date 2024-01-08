@@ -130,16 +130,26 @@ export function getVoices({
   return finalVoices
 }
 
+
 // return the first voice matching the critera
 // note: it is guaranteed that it always return a result
 export function getVoice({
   age = YOUNG,
   gender = "female",
   region = "american",
+  voiceId,
 }: {
   age?: number
   gender?: ClapModelGender
   region?: ClapModelRegion
+  voiceId?: string
 } = {}): ClapVoice {
+  if (voiceId) {
+    const found = voiceDatabase.find(v => v.voiceId === voiceId)
+    if (found) {
+      return found
+    }
+  }
+  
   return getVoices({ age, gender, region })[0]
 }

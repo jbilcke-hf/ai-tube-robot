@@ -1,85 +1,83 @@
-import { robotRole, skipProcessingChannels, skipProcessingQueue, testUserApiKey } from "./config.mts"
+import { robotRole, skipProcessingChannels, skipProcessingQueue } from "./config.mts"
 import { lock } from "./utils/lock.mts"
 import { processChannels } from "./processChannels.mts"
 import { processQueue } from "./processQueue.mts"
 import { processUpscaling } from "./processUpscaling.mts"
-import { getChannels } from "./huggingface/getters/getChannels.mts"
-import { ChannelInfo } from "./types/structures.mts"
-import { getVideoRequestsFromChannel } from "./huggingface/getters/getVideoRequestsFromChannel.mts"
-import { VideoInfo } from "./types/video.mts"
-import { VideoRequest } from "./types/requests.mts"
-import { processLowLevelVideoFormat } from "./processors/generateVideoFromClap.mts"
-
-export const main1 = async () => {
-  // const channels = await getChannels({ apiKey: testUserApiKey })
-  // console.log("channels:", channels)
-
-  const channel: ChannelInfo = {
-    id: '658de05189f1ff046308d029',
-    datasetUser: 'jbilcke',
-    datasetName: 'ai-tube-mainstream-movies',
-    slug: 'mainstream-movies',
-    label: 'Mainstream Movies',
-    description: 'A channel generating mainstream movies. This is for research only!',
-    model: 'SVD',
-    lora: '',
-    style: '',
-    voice: '',
-    music: '',
-    thumbnail: 'https://huggingface.co/datasets/jbilcke/ai-tube-mainstream-movies/resolve/main/thumbnail.jpg',
-    prompt: '',
-    likes: 0,
-    tags: [ 'Movie' ],
-    updatedAt: '2023-12-30T16:11:54.000Z',
-    orientation: 'landscape'
-  }
-
-  // const videos = await getVideoRequestsFromChannel({ channel, apiKey: testUserApiKey })
-  // console.log("videos:", videos)
-
-  const videoRequest: VideoRequest = {
-    id: '88c7ad16-54f4-4034-82e4-6ad883cbdd4b',
-    label: 'Toy Story',
-    description: '',
-    prompt: '',
-    model: 'SVD',
-    style: '',
-    lora: '',
-    voice: '',
-    music: '',
-    thumbnailUrl: '',
-
-    clapUrl: 'https://huggingface.co/datasets/jbilcke/ai-tube-mainstream-movies/resolve/main/Toy Story.clap',
-    updatedAt: '2023-12-30T23:57:42.323Z',
-    tags: [ 'Movie' ],
-    channel: {
-      id: '658de05189f1ff046308d029',
-      datasetUser: 'jbilcke',
-      datasetName: 'ai-tube-mainstream-movies',
-      slug: 'mainstream-movies',
-      label: 'Mainstream Movies',
-      description: 'A channel generating mainstream movies. This is for research only!',
-      model: 'SVD',
-      lora: '',
-      style: '',
-      voice: '',
-      music: '',
-      thumbnail: 'https://huggingface.co/datasets/jbilcke/ai-tube-mainstream-movies/resolve/main/thumbnail.jpg',
-      prompt: '',
-      likes: 0,
-      tags: [],
-      updatedAt: '2023-12-30T16:11:54.000Z',
-      orientation: 'landscape'
-    },
-    duration: 0,
-    orientation: 'landscape',
-  }
-
-  console.log("calling process channels:")
-  await processChannels()
-}
+import { generateImageSDXL } from "./generators/image/generateImageWithSDXL.mts"
+import { generateImageFromExistingFace } from "./generators/image/generateImageFromExistingFace.mts"
+import { readPngFileToBase64 } from "./files/readPngFileToBase64.mts"
+import { writeBase64ToFile } from "./files/writeBase64ToFile.mts"
+import { upscaleImageWithPasd } from "./generators/image/upscaleImageWithPasd.mts"
 
 export const main = async () => {
+  const prompt = [
+    `beautiful`,
+    `close-up`,
+    `photo portrait`,
+    `id photo`,
+    "female",
+    "aged 30yo",
+    "named alice",
+    `neutral expression`,
+    `neutral background`,
+    `frontal`,
+    `photo studio`,
+    `crisp`,
+    `sharp`,
+    `intricate details`
+  ].join(", ")
+  
+  /*
+  console.log("generating: " + prompt)
+  const referenceImage = await generateImageSDXL({
+    positivePrompt: prompt,
+    nbSteps: 70
+  })
+
+  await writeBase64ToFile(referenceImage, "./samples/tests/inputs/referenceImage.png")
+  */
+  
+  const referenceImage = await readPngFileToBase64("./samples/tests/inputs/referenceImage.png")
+
+
+  const scenePrompt = "movie still, medium shot, portrait of a woman lawyer, in an office, smiling, suit, cinematic, dim lighting"
+  
+  /*
+  console.log("calling generateImageFromExistingFace()")
+  const result = await generateImageFromExistingFace({
+    referenceImage,
+    prompt: scenePrompt,
+
+    // note: this function uses SD 1.5 for now, so it's not guaranteed that low
+    // resolution work well. Also, hands will be broken.
+    nbSteps: 50,
+
+    // this may seem pretty limiting, but that is because it uses SD 1.5 under the hood
+    // trying to use a resolution superior to 512 causes duplication in the image
+    // eg. two portraits
+    width: 512, // 1024,
+    height: 288, // 576
+
+    // so although the height is low-res, we can upscale it back to 1024x576!
+    scalingFactor: 2,
+  })
+
+  console.log("result: "+result.slice(0, 50))
+  */
+  const step2 = await readPngFileToBase64("./samples/tests/inputs/step2_painted_image.png")
+
+  console.log("calling upscaleImageWithPasd..")
+  const step3 = await upscaleImageWithPasd({
+    imageAsBase64: step2,
+    prompt: scenePrompt,
+    scaleFactor: 2,
+  })
+
+  console.log("writing to disk: " + step3.slice(0, 50))
+
+}
+
+export const main2 = async () => {
   
   let delayInSeconds = 15 * 60 // let's check every 5 minutes
 
