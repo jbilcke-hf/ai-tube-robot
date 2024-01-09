@@ -45,7 +45,8 @@ export async function upscaleVideo({
       imageAsBase64: lowResImageBase64,
       prompt,
     },
-      "ESRGAN"
+    "PASD"
+      // "ESRGAN"
       // "SDX4" <- it crashes because of "Unknown error"
     )
 
