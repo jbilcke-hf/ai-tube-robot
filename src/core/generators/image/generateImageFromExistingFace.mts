@@ -46,7 +46,7 @@ export async function generateImageFromExistingFace({ referenceImage, prompt, nb
 
   // step 3
 
-  console.log("Step 3: upscaling the image with PASD.")
+  console.log("Step 3: upscaling the image with PASD (can take about 90 sec)")
   const upscaledImage = await upscaleImageWithPasd({
     imageAsBase64: paintedImage,
     prompt,

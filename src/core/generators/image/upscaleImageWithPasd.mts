@@ -6,7 +6,8 @@ import { tryApiCalls } from "../../utils/tryApiCalls.mts"
 import { UpscaleImageParams } from "../../types/structures.mts"
 
 /**
- * Generatean image (warning: this uses SD 1.5, so resolutions > 512 might not work as expected
+ * Upscale an image. This will typically take about 90 seconds
+ * 
  * @param param0 
  * @returns 
  */
@@ -65,7 +66,7 @@ export async function upscaleImageWithPasd({
       const classifierFreeGuidance = 9.5
       const seed = -1
 
-      const res = await app.predict("/inference", [
+      const res = await app.predict(0, [
         imageAsBase64, 	// blob in 'parameter_5' Image component		
 				prompt, // string  in 'Prompt' Textbox component		
 				addedPrompt, // string  in 'Added Prompt' Textbox component		

@@ -9,7 +9,8 @@ import { readPngFileToBase64 } from "./files/readPngFileToBase64.mts"
 import { writeBase64ToFile } from "./files/writeBase64ToFile.mts"
 import { upscaleImageWithPasd } from "./generators/image/upscaleImageWithPasd.mts"
 
-export const main = async () => {
+/*
+export const main2 = async () => {
   const prompt = [
     `beautiful`,
     `close-up`,
@@ -27,7 +28,6 @@ export const main = async () => {
     `intricate details`
   ].join(", ")
   
-  /*
   console.log("generating: " + prompt)
   const referenceImage = await generateImageSDXL({
     positivePrompt: prompt,
@@ -35,16 +35,11 @@ export const main = async () => {
   })
 
   await writeBase64ToFile(referenceImage, "./samples/tests/inputs/referenceImage.png")
-  */
-  
-  const referenceImage = await readPngFileToBase64("./samples/tests/inputs/referenceImage.png")
 
-
-  const scenePrompt = "movie still, medium shot, portrait of a woman lawyer, in an office, smiling, suit, cinematic, dim lighting"
+  const scenePrompt = "photorealistic, movie still, medium shot, woman investor, on the phone, looking concerned, trading desk, dark light, intence, cinematic, dim lighting, perfect hands"
   
-  /*
   console.log("calling generateImageFromExistingFace()")
-  const result = await generateImageFromExistingFace({
+  const outputImage = await generateImageFromExistingFace({
     referenceImage,
     prompt: scenePrompt,
 
@@ -62,22 +57,11 @@ export const main = async () => {
     scalingFactor: 2,
   })
 
-  console.log("result: "+result.slice(0, 50))
-  */
-  const step2 = await readPngFileToBase64("./samples/tests/inputs/step2_painted_image.png")
-
-  console.log("calling upscaleImageWithPasd..")
-  const step3 = await upscaleImageWithPasd({
-    imageAsBase64: step2,
-    prompt: scenePrompt,
-    scaleFactor: 2,
-  })
-
-  console.log("writing to disk: " + step3.slice(0, 50))
-
+  await writeBase64ToFile(outputImage, "./samples/tests/outputs/outputImage.png")
 }
+*/
 
-export const main2 = async () => {
+export const main = async () => {
   
   let delayInSeconds = 15 * 60 // let's check every 5 minutes
 

@@ -24,9 +24,14 @@ import { writeBase64ToFile } from "../files/writeBase64ToFile.mts";
 import { getVoice } from "../generators/voice/voices.mts";
 import { generateImageSDXL } from "../generators/image/generateImageWithSDXL.mts";
 import { getClapAssetSourceType } from "../utils/getClapAssetSourceType.mts";
+import { getCharacterReferencePrompt } from "../huggingface/utils/getCharacterReferencePrompt.mts";
 import { getCharacterPrompt } from "../huggingface/utils/getCharacterPrompt.mts";
 import { formatVoice } from "../utils/formatVoice.mts";
 import { formatModel } from "../utils/formatModel.mts";
+import { paintFaceIntoImage } from "../generators/image/paintFaceIntoImage.mts";
+import { convertImageToPng } from "../utils/convertImageToPng.mts";
+import { upscaleImageWithPasd } from "../generators/image/upscaleImageWithPasd.mts";
+import { convertImageToWebp } from "../utils/convertImageToWebp.mts";
 
 // the low-level definition format used by "3rd party apps"
 export async function generateVideoFromClap({
@@ -106,7 +111,7 @@ export async function generateVideoFromClap({
     
       if (model.assetSourceType === "EMPTY" || !model.assetUrl) {
         model.assetUrl = await generateImageSDXL({
-          positivePrompt: getCharacterPrompt(model),
+          positivePrompt: getCharacterReferencePrompt(model),
           width: 1024,
           height: 1024,
           seed: model.seed,
@@ -233,12 +238,26 @@ export async function generateVideoFromClap({
     console.log(` |`)
     console.log(` |-${formatSegmentTime(segment)}`)
     const intersectingSegments = intersectWith(allNonPreviewNonAudioSegments, segment)
-    // console.log(`found ${intersectingSegments.length} intersecting segments`)
+
+    // console.log(`found ${intersectingSegments.length} intersecting segments`, intersectingSegments.map(s => s.category))
 
     // compute the video prompt for the active segments
     // this is not a very expensive function to run, it only concatenates the few tracks we got
     const videoPrompt = getVideoPrompt(intersectingSegments, modelsById, extraPositivePrompt)
     
+    const dialogues = intersectingSegments.filter(s => s.category === "dialogue")
+    const sceneContainsOnlyOneCharacter = dialogues.length === 1
+    const sceneContainsMultipleCharacters = dialogues.length > 1
+    const characterModel = modelsById[dialogues[0]?.modelId] || undefined
+
+    /*
+    this skip condition is only useful during development
+    if (!dialogues.length) {
+      // console.log("no dialogue (so no character), skipping..")
+      // continue
+    }
+    */
+
     // console.log(`prompt: ${videoPrompt}`)
     segment.seed = generateSeed()
     process.stdout.write(` | |- generating preview..`)
@@ -293,14 +312,14 @@ export async function generateVideoFromClap({
 
     // wait up to 2 minutes (120 x 1000ms)
     for (let nbAttempts = 0; nbAttempts < 120; nbAttempts++) {
-      await sleep(500) // we can be hardcore with Videochain, 500ms between requests is ezpz
+      await sleep(clapConfigUseTurboMode ? 500 : 1000) // we can be hardcore with Videochain, 500ms between requests is ezpz
       const renderedPreview = await getRender(segment.renderId )
       if (renderedPreview.status === "error") {
         break
       } else if (renderedPreview.status === "completed") {
         segment.status = "completed"
         segment.assetUrl = "" // <-- important: we DO NOT want to store the base64 blob in the clap file!
-        previewAsBase64 = renderedPreview.assetUrl
+        previewAsBase64 = await convertImageToPng(renderedPreview.assetUrl)
 
         process.stdout.write("\n") // important too
         // console.log(` | |- generation completed`) // ("${previewAsBase64.slice(0, 60)}"...)`)
@@ -319,17 +338,66 @@ export async function generateVideoFromClap({
     // console.log("previewAsBase64:", previewAsBase64.slice(0, 100))
     // continue
 
-    // now, here's where it gets tricky: we *could* store the binaries in the .clap file,
-    // but it's just not designed for this kind of heavy-duty usage, so we need to keep them
-    // "outside", typically on a CDN (for now a Hugging Face dataset)
 
+    const previewId = uuidv4()
+ 
+    if (sceneContainsOnlyOneCharacter) {
+      console.log(` | |- scene contains a character..`)
 
-    
+      // console.log("character model:", characterModel)
+
+      // console.log("scene segment:", segment)
+
+      if (characterModel && characterModel.assetSourceType === "DATA") {
+
+        // make sure the model image is in PNG
+        const referenceImage = await convertImageToPng(characterModel.assetUrl)
+
+        // console.log("referenceImage: " + referenceImage.slice(0, 50))
+        
+        // make sure the scene is in PNG
+        const targetImage = await convertImageToPng(previewAsBase64) // <-- IMPORTANT! we do not use segment.assetUrl, as the scene will be stored on a CDN!
+        console.log(` | |- applying character's face to the scene..`)
+
+        // console.log("targetImage: " + targetImage.slice(0, 50))
+        
+        const paintedImage = await paintFaceIntoImage({
+          referenceImage,
+          targetImage,
+        })
+
+        // now it's a PNG
+        // segment.assetUrl = paintedImage // <-- IMPORTANT! we use a CDN, so we keep it in-memory for now!
+        previewAsBase64 = paintedImage
+      }
+    }
+
+    console.log(` | |- improving the quality of the preview image..`)
+
+    const improvedImage = await upscaleImageWithPasd({
+      imageAsBase64: previewAsBase64,
+      prompt: videoPrompt,
+      scaleFactor: 2,
+    })
+
+    // now it's a PNG
+    // it can stay like this (having a high-quality image as an input for SVD is a good thing)
+    // segment.assetUrl = improvedImage // <-- IMPORTANT! we use a CDN, so we keep it in-memory for now!
+    previewAsBase64 = improvedImage
+
+    console.log(` | |- converting preview to WebP..`)
+
+    // you know what.. let's convert the PNG back to WebP for storage,
+    // or else our project will be overflowing
+    previewAsBase64 = await convertImageToWebp(previewAsBase64)
+     
+    console.log(` | |- saving preview..`)
+
     const { blob, extension } = extractBase64(previewAsBase64)
     
-    const previewId = uuidv4()
-
-    console.log(` | |- saving preview..`)
+       // now, here's where it gets tricky: we *could* store the binaries in the .clap file,
+    // but it's just not designed for this kind of heavy-duty usage, so we need to keep them
+    // "outside", typically on a CDN (for now a Hugging Face dataset)
     
     const assetUrl = await uploadBlob({
       blob,

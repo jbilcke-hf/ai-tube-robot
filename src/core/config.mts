@@ -56,7 +56,7 @@ export const hfInferenceApiToken = `${process.env.HUGGING_FACE_INFERENCE_API_TOK
 
 // this is probably the only thing you need to set to true while developping
 // this will reduce the length fo the video to about 3 secs
-export const quickTestAndDryRun = true
+export const quickTestAndDryRun = false
 
 // this one is useful too: set to tru to re-generate the index queue
 export const regenerateTheIndexQueueAndThatsAll = false
@@ -86,7 +86,7 @@ export const clapConfigForceRerenderingAllDialogues = true
 // this is used for debugging clap files
 // if set to true, this will use the "turbo" mode which is fast
 // but speed isn't an issue when on server-side, so..
-export const clapConfigUseTurboMode = true
+export const clapConfigUseTurboMode = false
 
 // set to true to not mark the video as "generating"
 // this will make it easier for you to generate the same video queue again and again during development

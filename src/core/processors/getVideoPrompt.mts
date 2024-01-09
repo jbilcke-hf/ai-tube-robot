@@ -1,5 +1,5 @@
 import { ClapModel, ClapSegment } from "../clap/types.mts"
-
+import { getCharacterPrompt } from "../huggingface/utils/getCharacterPrompt.mts"
 
 /**
  * Construct a video prompt from a list of active segments
@@ -37,25 +37,25 @@ export function getVideoPrompt(
 
       // console.log("segment is a dialogue line:", segment)
 
-     //  console.log("modelId:", segment.modelId)
+     console.log("modelId:", segment.modelId)
       // some segments have special powers attached to them: the Models!
       const model: ClapModel | undefined = modelsById[segment.modelId || ""] || undefined
       if (!model) {
-        // console.log("couldn't find the model!")
+        console.log("couldn't find the model!")
         return ""
       }
 
-      const characterTrigger = model?.triggerName || ""
-      const characterLabel = model?.label || ""
-      const characterDescription = model?.imageContent || ""
-      const dialogueLine = segment?.prompt || ""
+      const characterTrigger = model.triggerName || ""
+      const characterLabel = model.label || ""
+      const characterDescription = model.description || ""
+      const dialogueLine = segment.prompt || ""
       
-      if (characterDescription) {
-        return `portrait of a person speaking, blurry background, bokeh, ${characterDescription}`
-      }
-      // const dialogueLine = segment?.prompt || ""
+      const characterPrompt = getCharacterPrompt(model)
 
-      return characterDescription
+      // in the context of a video, we some something additional:
+      // we create a "bokeh" style
+      return `portrait of a person speaking, blurry background, bokeh, ${characterPrompt}`
+      
     } else {
       return segment.prompt
     }
